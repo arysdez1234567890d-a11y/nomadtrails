@@ -1,12 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import pool from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Calendar, MapPin, CreditCard, Clock, Plane, Hotel, Map, Settings, User } from "lucide-react";
-import ProfileTabs from "@/components/ProfileTabs"; // I'll create this next
+import ProfileTabs from "@/components/ProfileTabs";
 
 export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -17,24 +16,35 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
     redirect(`/${locale}`);
   }
 
-  // Fetch full user data
-  const [userRows]: any = await pool.query(
-    "SELECT * FROM users WHERE email = ?",
-    [session.user.email]
-  );
-  const userData = userRows[0];
+  const { data: userRows } = await supabase
+    .from('users')
+    .select('*')
+    .eq('email', session.user.email)
+    .limit(1);
 
-  // Fetch bookings
-  const [bookings]: any = await pool.query(
-    `SELECT b.*, t.name_${locale} as tour_name, h.name_${locale} as hotel_name, tr.title_${locale} as transport_title
-     FROM bookings b
-     LEFT JOIN tours t ON b.tour_id = t.id
-     LEFT JOIN hotels h ON b.hotel_id = h.id
-     LEFT JOIN transport_options tr ON b.transport_id = tr.id
-     WHERE b.user_id = ?
-     ORDER BY b.created_at DESC`,
-    [userData.id]
-  );
+  const userData = userRows?.[0];
+
+  if (!userData) {
+    redirect(`/${locale}`);
+  }
+
+  const { data: rawBookings } = await supabase
+    .from('bookings')
+    .select(`
+      *,
+      tours(name_en, name_ru, name_ky),
+      hotels(name_en, name_ru, name_ky),
+      transport_options(title_en, title_ru, title_ky)
+    `)
+    .eq('user_id', userData.id)
+    .order('created_at', { ascending: false });
+
+  const bookings = (rawBookings ?? []).map((b: any) => ({
+    ...b,
+    tour_name: b.tours?.[`name_${locale}`] ?? null,
+    hotel_name: b.hotels?.[`name_${locale}`] ?? null,
+    transport_title: b.transport_options?.[`title_${locale}`] ?? null,
+  }));
 
   const translations = {
     my_bookings: t("my_bookings"),
@@ -81,14 +91,13 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
                 </div>
               </div>
             </div>
-            
             <div className="p-4 md:p-8">
-               <ProfileTabs 
-                 bookings={bookings} 
-                 userData={userData} 
-                 translations={translations} 
-                 locale={locale}
-               />
+              <ProfileTabs
+                bookings={bookings}
+                userData={userData}
+                translations={translations}
+                locale={locale}
+              />
             </div>
           </div>
         </div>

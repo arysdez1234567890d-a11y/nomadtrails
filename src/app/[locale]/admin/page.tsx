@@ -1,12 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import pool from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { ShieldCheck, Users, Calendar, Map, CheckCircle, XCircle, Clock } from "lucide-react";
-
+import { ShieldCheck, Calendar, CheckCircle, Clock } from "lucide-react";
 import AdminTabs from "@/components/AdminTabs";
 
 export default async function AdminDashboard({ params }: { params: Promise<{ locale: string }> }) {
@@ -19,15 +18,22 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
 
   const t = await getTranslations("admin");
 
-  // Fetch all bookings for admin
-  const [bookings]: any = await pool.query(
-    `SELECT b.*, t.name_${locale} as tour_name, h.name_${locale} as hotel_name, tr.title_${locale} as transport_title
-     FROM bookings b
-     LEFT JOIN tours t ON b.tour_id = t.id
-     LEFT JOIN hotels h ON b.hotel_id = h.id
-     LEFT JOIN transport_options tr ON b.transport_id = tr.id
-     ORDER BY b.created_at DESC`
-  );
+  const { data: rawBookings } = await supabase
+    .from('bookings')
+    .select(`
+      *,
+      tours(name_en, name_ru, name_ky),
+      hotels(name_en, name_ru, name_ky),
+      transport_options(title_en, title_ru, title_ky)
+    `)
+    .order('created_at', { ascending: false });
+
+  const bookings = (rawBookings ?? []).map((b: any) => ({
+    ...b,
+    tour_name: b.tours?.[`name_${locale}`] ?? null,
+    hotel_name: b.hotels?.[`name_${locale}`] ?? null,
+    transport_title: b.transport_options?.[`title_${locale}`] ?? null,
+  }));
 
   const stats = {
     total: bookings.length,
@@ -76,7 +82,6 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
               </h1>
               <p className="text-emerald-400/60 font-bold text-xs uppercase tracking-[0.3em] ml-16">Management Control Center</p>
             </div>
-            
             <div className="flex flex-wrap gap-4">
               {[
                 { label: t("total_bookings"), value: stats.total, icon: Calendar, color: "from-blue-500/20 to-blue-600/5", textColor: "text-blue-400" },
@@ -84,8 +89,8 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
                 { label: t("confirmed_bookings"), value: stats.confirmed, icon: CheckCircle, color: "from-emerald-500/20 to-emerald-600/5", textColor: "text-emerald-400" },
               ].map((stat, i) => (
                 <div key={i} className="relative group overflow-hidden bg-white/5 backdrop-blur-md p-5 rounded-[2rem] border border-white/10 flex items-center gap-5 min-w-[180px] transition-all hover:bg-white/10">
-                   <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-50`} />
-                   <div className="relative z-10 w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white border border-white/10">
+                  <div className={`absolute inset-0 bg-gradient-to-br ${stat.color} opacity-50`} />
+                  <div className="relative z-10 w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-white border border-white/10">
                     <stat.icon size={22} className={stat.textColor} />
                   </div>
                   <div className="relative z-10">
@@ -96,7 +101,6 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
               ))}
             </div>
           </div>
-
           <div className="bg-white/5 backdrop-blur-2xl rounded-[3rem] shadow-2xl overflow-hidden border border-white/10">
             <AdminTabs initialBookings={bookings} translations={translations} locale={locale} />
           </div>

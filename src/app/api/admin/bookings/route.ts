@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import pool from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function PATCH(req: Request) {
@@ -8,14 +8,8 @@ export async function PATCH(req: Request) {
     if (!session || (session.user as any).role !== 'admin') {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-
     const { bookingId, status } = await req.json();
-
-    await pool.query(
-      "UPDATE bookings SET status = ? WHERE id = ?",
-      [status, bookingId]
-    );
-
+    await supabase.from('bookings').update({ status }).eq('id', bookingId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating booking:", error);

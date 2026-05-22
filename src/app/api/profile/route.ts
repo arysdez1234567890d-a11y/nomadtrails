@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import pool from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function PATCH(req: Request) {
@@ -8,15 +8,8 @@ export async function PATCH(req: Request) {
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
     const { name, phone } = await req.json();
-    const email = session.user.email;
-
-    await pool.query(
-      "UPDATE users SET name = ?, phone = ? WHERE email = ?",
-      [name, phone, email]
-    );
-
+    await supabase.from('users').update({ name, phone }).eq('email', session.user.email);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating profile:", error);

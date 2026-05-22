@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import pool from "@/lib/db";
+import { supabase } from "@/lib/supabase";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
@@ -17,30 +17,26 @@ export async function POST(req: Request) {
       phone,
       preferred_date,
       guests,
-      special_requests
+      special_requests,
     } = data;
 
-    // Save to DB
-    const [result]: any = await pool.query(
-      `INSERT INTO bookings 
-      (user_id, item_type, tour_id, hotel_id, transport_id, full_name, email, phone, preferred_date, guests, special_requests, status) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')`,
-      [
-        session?.user ? (session.user as any).id : null,
-        item_type || 'tour',
-        tour_id || null,
-        hotel_id || null,
-        transport_id || null,
-        full_name,
-        email,
-        phone,
-        preferred_date,
-        guests || 1,
-        special_requests || ''
-      ]
-    );
+    const { data: result, error } = await supabase.from('bookings').insert({
+      user_id: session?.user ? (session.user as any).id : null,
+      item_type: item_type || 'tour',
+      tour_id: tour_id || null,
+      hotel_id: hotel_id || null,
+      transport_id: transport_id || null,
+      full_name,
+      email,
+      phone,
+      preferred_date,
+      guests: guests || 1,
+      special_requests: special_requests || '',
+      status: 'new',
+    }).select().single();
 
-    return NextResponse.json({ success: true, bookingId: result.insertId });
+    if (error) throw error;
+    return NextResponse.json({ success: true, bookingId: result.id });
   } catch (error) {
     console.error("Error creating booking:", error);
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
