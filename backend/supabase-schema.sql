@@ -130,16 +130,22 @@ CREATE TABLE contact_messages (
 );
 
 -- ================================================================
--- DISABLE ROW LEVEL SECURITY (using publishable/anon key)
+-- DISABLE ROW LEVEL SECURITY + GRANT full access to anon role
+-- (all DB operations are server-side only — API routes / server components)
 -- ================================================================
 
-ALTER TABLE users DISABLE ROW LEVEL SECURITY;
-ALTER TABLE locations DISABLE ROW LEVEL SECURITY;
-ALTER TABLE tours DISABLE ROW LEVEL SECURITY;
-ALTER TABLE hotels DISABLE ROW LEVEL SECURITY;
-ALTER TABLE transport_options DISABLE ROW LEVEL SECURITY;
-ALTER TABLE bookings DISABLE ROW LEVEL SECURITY;
-ALTER TABLE contact_messages DISABLE ROW LEVEL SECURITY;
+ALTER TABLE users              DISABLE ROW LEVEL SECURITY;
+ALTER TABLE locations          DISABLE ROW LEVEL SECURITY;
+ALTER TABLE tours              DISABLE ROW LEVEL SECURITY;
+ALTER TABLE hotels             DISABLE ROW LEVEL SECURITY;
+ALTER TABLE transport_options  DISABLE ROW LEVEL SECURITY;
+ALTER TABLE bookings           DISABLE ROW LEVEL SECURITY;
+ALTER TABLE contact_messages   DISABLE ROW LEVEL SECURITY;
+
+-- Grant full table access to anon + authenticated roles
+GRANT ALL ON ALL TABLES    IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO anon, authenticated;
 
 -- ================================================================
 -- SEED DATA — LOCATIONS (6 destinations)
