@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
@@ -26,6 +25,7 @@ export function generateStaticParams() {
 
 import BackgroundMusic from "@/components/BackgroundMusic";
 import { Providers } from "@/components/Providers";
+import { IntlProvider } from "@/components/IntlProvider";
 
 export default async function LocaleLayout({ children, params }: Props) {
   const { locale } = await params;
@@ -48,12 +48,12 @@ export default async function LocaleLayout({ children, params }: Props) {
         />
       </head>
       <body className="font-inter antialiased">
-        <NextIntlClientProvider messages={messages}>
+        <IntlProvider locale={locale} messages={messages}>
           <Providers>
             {children}
             <BackgroundMusic />
           </Providers>
-        </NextIntlClientProvider>
+        </IntlProvider>
       </body>
     </html>
   );
