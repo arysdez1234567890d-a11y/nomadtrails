@@ -9,19 +9,21 @@ import {
   Plus,
   Trash2,
   Edit,
+  Activity,
 } from "lucide-react";
 import AdminBookingTable from "./AdminBookingTable";
 import AdminUserTable from "./AdminUserTable";
 import AdminMessagesTable from "./AdminMessagesTable";
+import AdminActivityFeed from "./AdminActivityFeed";
 
-type Tab = "bookings" | "tours" | "hotels" | "users" | "messages";
+type Tab = "activity" | "bookings" | "tours" | "hotels" | "users" | "messages";
 
 export default function AdminTabs({
   initialBookings,
   translations,
   locale,
 }: any) {
-  const [activeTab, setActiveTab] = useState<Tab>("bookings");
+  const [activeTab, setActiveTab] = useState<Tab>("activity");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -57,6 +59,7 @@ export default function AdminTabs({
   }
 
   const tabs: { id: Tab; icon: any; label: string }[] = [
+    { id: "activity", icon: Activity, label: "Activity" },
     { id: "bookings", icon: Calendar, label: translations.tab_bookings },
     { id: "tours", icon: Map, label: translations.tab_tours },
     { id: "hotels", icon: Hotel, label: translations.tab_hotels },
@@ -85,6 +88,8 @@ export default function AdminTabs({
       </div>
 
       {/* Tab content */}
+      {activeTab === "activity" && <AdminActivityFeed />}
+
       {activeTab === "bookings" && (
         <AdminBookingTable
           initialBookings={initialBookings}

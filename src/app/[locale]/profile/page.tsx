@@ -1,11 +1,13 @@
 export const dynamic = 'force-dynamic';
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ProfileTabs from "@/components/ProfileTabs";
+import { ShieldCheck, ArrowRight, Calendar, Mail, Users } from "lucide-react";
 
 export default async function ProfilePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -39,6 +41,22 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
       image: session.user.image,
       role: 'user',
     };
+  }
+
+  // Fetch admin overview stats (only if admin)
+  let adminStats: { bookings: number; users: number; messages: number; new_bookings: number } | null = null;
+  if (userData.role === "admin") {
+    try {
+      const [{ count: b }, { count: u }, { count: m }, { count: nb }] = await Promise.all([
+        supabase.from("bookings").select("*", { count: "exact", head: true }),
+        supabase.from("users").select("*", { count: "exact", head: true }),
+        supabase.from("contact_messages").select("*", { count: "exact", head: true }).eq("is_read", false),
+        supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "new"),
+      ]);
+      adminStats = { bookings: b ?? 0, users: u ?? 0, messages: m ?? 0, new_bookings: nb ?? 0 };
+    } catch (e: any) {
+      console.error("[profile admin stats]", e?.message ?? e);
+    }
   }
 
   if (userData.id) {
@@ -111,6 +129,53 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
               </div>
             </div>
             <div className="p-4 md:p-8">
+              {userData.role === "admin" && (
+                <Link
+                  href={`/${locale}/admin`}
+                  className="group block mb-8 relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0d1117] via-[#1a3d2b] to-[#0d2818] p-6 md:p-8 hover:shadow-2xl hover:shadow-[#c9a84c]/20 transition-all"
+                >
+                  {/* Background decorations */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#c9a84c]/10 rounded-full blur-3xl -mr-32 -mt-32 group-hover:bg-[#c9a84c]/20 transition-all" />
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl -ml-24 -mb-24" />
+
+                  <div className="relative z-10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-[#c9a84c] flex items-center justify-center shadow-lg shadow-[#c9a84c]/30 shrink-0 group-hover:scale-110 transition-transform">
+                          <ShieldCheck className="text-[#1a3d2b]" size={26} />
+                        </div>
+                        <div>
+                          <p className="text-[#c9a84c] text-[10px] font-black uppercase tracking-[0.3em] mb-1">
+                            Admin Access
+                          </p>
+                          <h3 className="text-2xl md:text-3xl font-black font-playfair text-white mb-1">
+                            Open Admin Panel
+                          </h3>
+                          <p className="text-white/50 text-sm">
+                            Manage bookings, users, tours, hotels & messages
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start sm:self-center text-[#c9a84c] font-bold group-hover:gap-3 transition-all">
+                        <span className="text-xs uppercase tracking-widest">Enter</span>
+                        <ArrowRight size={20} />
+                      </div>
+                    </div>
+
+                    {/* Quick stats */}
+                    {adminStats && (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10">
+                        <AdminStat icon={Calendar} label="Total bookings" value={adminStats.bookings} accent="text-blue-400" />
+                        <AdminStat icon={Calendar} label="New requests" value={adminStats.new_bookings} accent="text-orange-400" badge={adminStats.new_bookings > 0} />
+                        <AdminStat icon={Users} label="Users" value={adminStats.users} accent="text-violet-400" />
+                        <AdminStat icon={Mail} label="Unread msgs" value={adminStats.messages} accent="text-pink-400" badge={adminStats.messages > 0} />
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              )}
+
               <ProfileTabs
                 bookings={bookings}
                 userData={userData}
@@ -123,5 +188,30 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
       </main>
       <Footer />
     </>
+  );
+}
+
+function AdminStat({
+  icon: Icon,
+  label,
+  value,
+  accent,
+  badge = false,
+}: {
+  icon: any;
+  label: string;
+  value: number;
+  accent: string;
+  badge?: boolean;
+}) {
+  return (
+    <div className="relative bg-white/5 backdrop-blur-md p-3 rounded-xl border border-white/10">
+      <div className="flex items-center justify-between mb-2">
+        <Icon size={14} className={accent} />
+        {badge && <span className="w-1.5 h-1.5 rounded-full bg-[#c9a84c] animate-pulse" />}
+      </div>
+      <p className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-0.5">{label}</p>
+      <p className="text-lg font-black text-white tabular-nums">{value}</p>
+    </div>
   );
 }
