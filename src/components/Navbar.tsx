@@ -36,6 +36,18 @@ export default function Navbar() {
       .catch(() => setHasGoogle(false));
   }, []);
 
+  async function handleLogout() {
+    setUserMenuOpen(false);
+    setMenuOpen(false);
+    try {
+      await signOut({ redirect: false });
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+    // Hard reload to clear ALL client-side cached state
+    window.location.href = `/${currentLocale}`;
+  }
+
   const currentLocale = pathname.split("/")[1] || "en";
   const currentLang = LOCALES.find((l) => l.code === currentLocale) || LOCALES[0];
 
@@ -139,7 +151,7 @@ export default function Navbar() {
                     <Link href={`/${currentLocale}/profile`} onClick={() => setUserMenuOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-50 transition-all font-bold text-sm">
                       <User size={18} /> {t("profile")}
                     </Link>
-                    <button onClick={() => signOut()} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold text-sm mt-1">
+                    <button onClick={handleLogout} className="flex items-center gap-3 w-full px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-bold text-sm mt-1">
                       <LogOut size={18} /> {t("logout")}
                     </button>
                   </motion.div>
@@ -194,7 +206,7 @@ export default function Navbar() {
                   <User className="mr-3" /> {t("login")}
                 </button>
               ) : (
-                <button onClick={() => signOut()} className="w-full py-5 text-red-500 font-bold flex items-center justify-center gap-2">
+                <button onClick={handleLogout} className="w-full py-5 text-red-500 font-bold flex items-center justify-center gap-2">
                   <LogOut /> {t("logout")}
                 </button>
               )}
