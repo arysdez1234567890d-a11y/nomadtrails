@@ -16,8 +16,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     // ① signIn — runs once per OAuth login.
-    // Create/update the DB row but ALWAYS return true so the user is signed in
-    // even if the DB is unreachable.
+    // Creates the DB row. First-ever user is auto-promoted to admin.
     async signIn({ user, account }) {
       if (account?.provider !== "google" || !user?.email) return true;
       try {
@@ -28,11 +27,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .limit(1);
 
         if (!rows || rows.length === 0) {
+          // First user gets admin role automatically — solves the bootstrap problem
+          const { count } = await supabase
+            .from("users")
+            .select("*", { count: "exact", head: true });
+          const isFirstUser = (count ?? 0) === 0;
+
           const { error } = await supabase.from("users").insert({
             name: user.name,
             email: user.email,
             image: user.image,
             google_id: user.id,
+            role: isFirstUser ? "admin" : "user",
           });
           if (error) console.error("[auth signIn] insert error:", error.message);
         } else {
@@ -48,14 +54,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
 
-    // ② jwt — runs on EVERY request that touches auth.
-    // Look up the DB row only on first login (when `user` is present)
-    // and cache id/role on the token so subsequent requests are fast.
+    // ② jwt — runs on EVERY auth call. We refresh from DB on first login,
+    // on session.update(), AND every time the JWT cycles so role changes
+    // applied via the admin panel propagate without needing the user to
+    // re-login.
     async jwt({ token, user, trigger }) {
-      // First login OR session.update() called → refresh from DB
-      const shouldRefresh = !!user || trigger === "update";
-
-      if (shouldRefresh && token?.email) {
+      // Always re-read DB role if we have an email — keeps role in sync
+      // when an admin promotes another user via the panel
+      if (token?.email) {
         try {
           const { data: rows } = await supabase
             .from("users")
@@ -65,7 +71,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           if (rows && rows.length > 0) {
             token.dbId = rows[0].id;
             token.role = rows[0].role;
-          } else {
+          } else if (user) {
+            // First login but DB insert may not have completed yet
             token.dbId = null;
             token.role = "user";
           }
@@ -76,9 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
 
-    // ③ session — runs on every auth() / useSession() call.
-    // Copy cached values from the JWT — NO DB queries here, so the session
-    // is always returned reliably (no timeout = no surprise logout).
+    // ③ session — copies cached values from the JWT.
     async session({ session, token }: any) {
       if (session?.user) {
         session.user.id = token?.dbId ?? null;
