@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, Globe, ChevronDown, User, LogOut, ShieldCheck, Map } from "lucide-react";
 import { useSession, signIn, signOut } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import SignInModal from "./SignInModal";
 
 const LOCALES = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -24,6 +25,16 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [signInOpen, setSignInOpen] = useState(false);
+  const [hasGoogle, setHasGoogle] = useState(true);
+
+  useEffect(() => {
+    // Check which providers are configured (call NextAuth API)
+    fetch("/api/auth/providers")
+      .then((r) => r.json())
+      .then((p) => setHasGoogle(!!p?.google))
+      .catch(() => setHasGoogle(false));
+  }, []);
 
   const currentLocale = pathname.split("/")[1] || "en";
   const currentLang = LOCALES.find((l) => l.code === currentLocale) || LOCALES[0];
@@ -112,7 +123,7 @@ export default function Navbar() {
                   )}
                 </button>
               ) : (
-                <button onClick={() => signIn("google")} className={`btn-primary !py-2.5 !px-6 !text-[11px]`}>
+                <button onClick={() => setSignInOpen(true)} className={`btn-primary !py-2.5 !px-6 !text-[11px]`}>
                   <User size={14} className="mr-2" />
                   {t("login")}
                 </button>
@@ -179,7 +190,7 @@ export default function Navbar() {
             </div>
             <div className="p-8 border-t border-gray-100 bg-gray-50">
               {!session ? (
-                <button onClick={() => signIn("google")} className="btn-primary w-full py-5">
+                <button onClick={() => { setSignInOpen(true); setMenuOpen(false); }} className="btn-primary w-full py-5">
                   <User className="mr-3" /> {t("login")}
                 </button>
               ) : (
@@ -191,6 +202,8 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <SignInModal open={signInOpen} onClose={() => setSignInOpen(false)} hasGoogle={hasGoogle} />
     </header>
   );
 }

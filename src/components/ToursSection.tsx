@@ -61,7 +61,7 @@ export default function ToursSection() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!session) {
-      signIn("google");
+      signIn();
       return;
     }
     
