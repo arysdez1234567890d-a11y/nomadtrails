@@ -1,14 +1,15 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { supabase } from "@/lib/supabase";
 
-// Check if Google OAuth is properly configured
+// Detect if Google OAuth is properly configured
 const hasGoogleAuth =
   !!process.env.AUTH_GOOGLE_ID &&
   !!process.env.AUTH_GOOGLE_SECRET &&
   !process.env.AUTH_GOOGLE_ID.startsWith("your-") &&
-  process.env.AUTH_GOOGLE_ID !== "";
+  process.env.AUTH_GOOGLE_ID.length > 0;
 
 const providers: any[] = [];
 
@@ -21,27 +22,44 @@ if (hasGoogleAuth) {
   );
 }
 
-// Always-on Credentials provider — works without Google OAuth setup.
-// Accepts ANY email + password (no real check). Use for development/demo.
-// First user to log in becomes admin automatically.
+// Email + password login. Returns user from DB if credentials valid.
 providers.push(
   Credentials({
-    id: "demo",
-    name: "Demo Login",
+    id: "credentials",
+    name: "Email and password",
     credentials: {
-      email: { label: "Email", type: "email", placeholder: "you@example.com" },
-      name: { label: "Name (optional)", type: "text" },
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
     },
-    async authorize(credentials) {
-      const email = String(credentials?.email || "").trim().toLowerCase();
-      if (!email || !email.includes("@")) return null;
-      const name = String(credentials?.name || email.split("@")[0]);
-      return {
-        id: email,
-        email,
-        name,
-        image: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
-      } as any;
+    async authorize(creds) {
+      const email = String(creds?.email || "").trim().toLowerCase();
+      const password = String(creds?.password || "");
+      if (!email || !email.includes("@") || !password) return null;
+
+      try {
+        const { data: rows, error } = await supabase
+          .from("users")
+          .select("id, name, email, image, role, password_hash")
+          .eq("email", email)
+          .limit(1);
+
+        if (error || !rows || rows.length === 0) return null;
+        const u = rows[0] as any;
+
+        if (!u.password_hash) return null; // user has no password set
+        const ok = await bcrypt.compare(password, u.password_hash);
+        if (!ok) return null;
+
+        return {
+          id: String(u.id),
+          email: u.email,
+          name: u.name,
+          image: u.image,
+        } as any;
+      } catch (e: any) {
+        console.error("[auth credentials] DB error:", e?.message ?? e);
+        return null;
+      }
     },
   })
 );
@@ -52,52 +70,41 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  pages: {
-    signIn: "/api/auth/signin", // use default page; works with credentials provider
-  },
   providers,
   callbacks: {
-    // signIn — creates DB row. First-ever user is auto-promoted to admin.
+    // Google sign-in creates a user row (no password). Credentials provider
+    // already returns a user that exists, so for credentials we just allow.
     async signIn({ user, account }) {
-      if (!user?.email) return false;
-      const provider = account?.provider ?? "demo";
-      try {
-        const { data: rows } = await supabase
-          .from("users")
-          .select("id")
-          .eq("email", user.email)
-          .limit(1);
-
-        if (!rows || rows.length === 0) {
-          // First user auto-becomes admin
-          const { count } = await supabase
+      if (account?.provider === "google" && user?.email) {
+        try {
+          const { data: existing } = await supabase
             .from("users")
-            .select("*", { count: "exact", head: true });
-          const isFirstUser = (count ?? 0) === 0;
-
-          const { error } = await supabase.from("users").insert({
-            name: user.name,
-            email: user.email,
-            image: user.image,
-            google_id: provider === "google" ? user.id : null,
-            role: isFirstUser ? "admin" : "user",
-          });
-          if (error) console.error("[auth signIn] insert error:", error.message);
-        } else {
-          const { error } = await supabase
-            .from("users")
-            .update({ name: user.name, image: user.image })
-            .eq("email", user.email);
-          if (error) console.error("[auth signIn] update error:", error.message);
+            .select("id")
+            .eq("email", user.email)
+            .limit(1);
+          if (!existing || existing.length === 0) {
+            await supabase.from("users").insert({
+              name: user.name,
+              email: user.email,
+              image: user.image,
+              google_id: user.id,
+              role: "user", // Google users default to regular user
+            });
+          } else {
+            await supabase
+              .from("users")
+              .update({ name: user.name, image: user.image, google_id: user.id })
+              .eq("email", user.email);
+          }
+        } catch (e: any) {
+          console.error("[auth signIn google]:", e?.message ?? e);
         }
-      } catch (e: any) {
-        console.error("[auth signIn] unexpected:", e?.message ?? e);
       }
       return true;
     },
 
-    // jwt — always re-fetches role from DB so admin role changes propagate
-    // without requiring the user to log out and back in.
+    // jwt — re-fetch role from DB every cycle so admin promotions
+    // applied via the admin panel propagate without re-login.
     async jwt({ token, user }) {
       if (user?.email) token.email = user.email;
       if (token?.email) {

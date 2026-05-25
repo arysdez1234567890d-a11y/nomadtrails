@@ -1,36 +1,161 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NomadTrails — Kyrgyzstan Travel Website
 
-## Getting Started
+Премиум туристический сайт по Кыргызстану. Туры, отели, бронирования, многоязычность (EN/RU/KY), админ-панель.
 
-First, run the development server:
+**Стек:** Next.js 15 · TypeScript · Supabase (PostgreSQL) · NextAuth v5 · Tailwind 4 · Framer Motion · GSAP
 
+---
+
+## 🚀 Запуск с нуля (на новом компьютере)
+
+### Шаг 1. Склонируй репозиторий
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/akbaralievernis/nomadtrails.git
+cd nomadtrails
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Шаг 2. Установи зависимости
+```bash
+npm install --legacy-peer-deps
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Шаг 3. Создай файл `.env.local`
+Скопируй `.env.example` → `.env.local`, заполни значения:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```env
+# Supabase (из Settings → API в Supabase Dashboard)
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_XXXXX
 
-## Learn More
+# NextAuth — обязательно стабильный 32+ символьный секрет
+# Сгенерируй: node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+AUTH_SECRET=ваш_сгенерированный_секрет
 
-To learn more about Next.js, take a look at the following resources:
+# Google OAuth (опционально, если не нужен — оставь пустым)
+AUTH_GOOGLE_ID=
+AUTH_GOOGLE_SECRET=
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+AUTH_URL=http://localhost:3000
+NEXTAUTH_URL=http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Шаг 4. Запусти SQL-схему в Supabase (только один раз)
 
-## Deploy on Vercel
+Открой **https://supabase.com/dashboard/project/YOUR_PROJECT/sql/new**
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Выполни последовательно (Run для каждого):
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **`backend/supabase-schema.sql`** — создаёт все таблицы
+2. **`backend/seed-data.sql`** — добавляет демо-туры/отели/бронирования
+3. **`backend/setup-auth.sql`** — добавляет поле `password_hash` + создаёт админа
+
+### Шаг 5. Запусти приложение
+```bash
+npm run dev
+```
+
+Открой **http://localhost:3000/en**
+
+---
+
+## 🔑 Учётные данные администратора
+
+После запуска `setup-auth.sql`:
+
+| Поле | Значение |
+|------|----------|
+| **Email** | `admin@gmail.com` |
+| **Password** | `admin123` |
+
+Вход: кнопка **Login** в navbar → вкладка **Sign In** → введите email/пароль.
+
+После входа в **профиле** появится золотая карточка **"Open Admin Panel"** — клик → попадёте в админку.
+
+---
+
+## 👤 Регистрация обычных пользователей
+
+Любой посетитель может зарегистрироваться:
+1. Кнопка **Login** в navbar
+2. Вкладка **Register**
+3. Имя + email + пароль (минимум 6 символов)
+4. Готово — автоматически логинит
+
+Обычные пользователи получают роль `user` (не админ).
+
+---
+
+## 🔄 Передача проекта другому человеку
+
+### Вариант A: они используют ту же Supabase базу
+Просто дай им:
+1. Доступ к этому GitHub репо
+2. Скопируй им `.env.local` (или скажи скопировать у себя)
+
+Они выполнят шаги 1, 2, 5. SQL уже в БД — не нужно перезапускать.
+
+### Вариант B: они создают свой Supabase проект (более правильно)
+1. Они создают новый проект на https://supabase.com
+2. Settings → API → копируют URL и `anon/publishable key`
+3. Создают свой `.env.local` с новыми значениями
+4. Запускают все 3 SQL из `backend/` в своём Supabase
+5. `npm install && npm run dev`
+
+В обоих случаях админ-аккаунт `admin@gmail.com / admin123` создаётся через `setup-auth.sql`.
+
+---
+
+## 📁 Структура проекта
+
+```
+src/
+├── app/
+│   ├── [locale]/           ← страницы EN/RU/KY
+│   │   ├── page.tsx        ← главная
+│   │   ├── profile/        ← личный кабинет
+│   │   └── admin/          ← админ-панель (только role='admin')
+│   └── api/
+│       ├── auth/
+│       │   ├── [...nextauth]/  ← NextAuth handler
+│       │   └── register/       ← регистрация email/password
+│       ├── admin/          ← admin-only API: users, messages, stats, activity
+│       └── bookings/       ← бронирования
+├── components/             ← React UI компоненты
+├── lib/supabase.ts         ← Supabase клиент
+└── auth.ts                 ← NextAuth конфиг (Credentials + Google)
+
+backend/
+├── supabase-schema.sql     ← полная схема БД + RLS off + начальные данные
+├── seed-data.sql           ← только демо-данные (без пересоздания)
+├── setup-auth.sql          ← password_hash + админ-аккаунт
+└── fix-rls.sql             ← быстрый фикс RLS (если только это нужно)
+
+messages/
+├── en.json / ru.json / ky.json   ← переводы
+```
+
+---
+
+## 🛠 Полезные команды
+
+```bash
+npm run dev      # dev-сервер (рекомендуется для разработки)
+npm run build    # production build
+npm start        # production server (требует build)
+npm run lint     # ESLint
+```
+
+---
+
+## 🔐 Безопасность
+
+- Пароли хешируются bcrypt (10 rounds) — никогда не хранятся в plaintext
+- Сессии — JWT, подписанные `AUTH_SECRET`, живут 30 дней
+- Admin-роли проверяются и в middleware (страницы), и в API роутах
+- Supabase RLS отключён (все DB-запросы делаются server-side)
+
+**Перед продакшеном:**
+- [ ] Смени `AUTH_SECRET` на свежий случайный
+- [ ] Смени пароль админа `admin@gmail.com` на стойкий
+- [ ] Подключи свой домен с HTTPS (AUTH_URL=https://yourdomain.com)
+- [ ] Настрой реальный Google OAuth (если нужен)

@@ -3,7 +3,19 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { signIn } from "next-auth/react";
-import { X, Mail, ArrowRight, Loader2 } from "lucide-react";
+import {
+  X,
+  Mail,
+  Lock,
+  User as UserIcon,
+  Loader2,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
+
+type Mode = "login" | "register";
 
 export default function SignInModal({
   open,
@@ -14,32 +26,90 @@ export default function SignInModal({
   onClose: () => void;
   hasGoogle: boolean;
 }) {
+  const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [loading, setLoading] = useState<"google" | "demo" | null>(null);
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState<"google" | "credentials" | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  function reset() {
+    setError(null);
+    setSuccess(null);
+  }
 
   async function handleGoogle() {
+    reset();
     setLoading("google");
     try {
       await signIn("google", { callbackUrl: window.location.href });
+    } catch (e: any) {
+      setError(e?.message || "Google sign-in failed");
     } finally {
       setLoading(null);
     }
   }
 
-  async function handleDemo(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email || !email.includes("@")) return;
-    setLoading("demo");
+    reset();
+    if (!email.includes("@")) {
+      setError("Please enter a valid email");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
+      return;
+    }
+    setLoading("credentials");
+
     try {
-      await signIn("demo", {
-        email: email.trim().toLowerCase(),
-        name: name.trim() || undefined,
-        callbackUrl: window.location.href,
+      if (mode === "register") {
+        // Step 1: create account
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, name }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Registration failed");
+          setLoading(null);
+          return;
+        }
+        setSuccess("Account created! Signing you in...");
+      }
+
+      // Step 2: sign in with credentials (works for both login and just-registered)
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
       });
-    } finally {
+
+      if (result?.error) {
+        setError(
+          mode === "login"
+            ? "Invalid email or password"
+            : "Account created but sign-in failed. Try logging in."
+        );
+        setLoading(null);
+        return;
+      }
+
+      // Success — refresh the page to pick up new session
+      window.location.reload();
+    } catch (e: any) {
+      setError(e?.message || "Something went wrong");
       setLoading(null);
     }
+  }
+
+  function switchMode(next: Mode) {
+    setMode(next);
+    reset();
   }
 
   return (
@@ -58,7 +128,7 @@ export default function SignInModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 30 }}
             transition={{ type: "spring", damping: 22, stiffness: 280 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[min(420px,calc(100vw-2rem))] bg-white rounded-3xl shadow-2xl overflow-hidden"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[min(440px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] overflow-y-auto bg-white rounded-3xl shadow-2xl"
           >
             <button
               onClick={onClose}
@@ -69,13 +139,59 @@ export default function SignInModal({
 
             <div className="bg-gradient-to-br from-[#1a3d2b] to-[#0d2818] px-8 pt-10 pb-6 text-white text-center">
               <div className="w-16 h-16 mx-auto bg-[#c9a84c] rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-[#c9a84c]/30">
-                <Mail className="text-[#1a3d2b]" size={28} />
+                {mode === "login" ? (
+                  <Lock className="text-[#1a3d2b]" size={28} />
+                ) : (
+                  <UserIcon className="text-[#1a3d2b]" size={28} />
+                )}
               </div>
-              <h2 className="font-playfair text-2xl font-bold">Sign in to NomadTrails</h2>
-              <p className="text-white/60 text-xs mt-1">Book tours, manage your trips</p>
+              <h2 className="font-playfair text-2xl font-bold">
+                {mode === "login" ? "Welcome back" : "Create account"}
+              </h2>
+              <p className="text-white/60 text-xs mt-1">
+                {mode === "login"
+                  ? "Sign in to manage your bookings"
+                  : "Join NomadTrails and start your journey"}
+              </p>
             </div>
 
-            <div className="p-8 space-y-5">
+            {/* Mode tabs */}
+            <div className="grid grid-cols-2 border-b border-gray-100">
+              <button
+                onClick={() => switchMode("login")}
+                className={`py-4 font-bold text-sm transition relative ${
+                  mode === "login"
+                    ? "text-[#1a3d2b]"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Sign In
+                {mode === "login" && (
+                  <motion.div
+                    layoutId="auth-tab-underline"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#c9a84c]"
+                  />
+                )}
+              </button>
+              <button
+                onClick={() => switchMode("register")}
+                className={`py-4 font-bold text-sm transition relative ${
+                  mode === "register"
+                    ? "text-[#1a3d2b]"
+                    : "text-gray-400 hover:text-gray-600"
+                }`}
+              >
+                Register
+                {mode === "register" && (
+                  <motion.div
+                    layoutId="auth-tab-underline"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#c9a84c]"
+                  />
+                )}
+              </button>
+            </div>
+
+            <div className="p-8 space-y-4">
               {hasGoogle && (
                 <>
                   <button
@@ -113,58 +229,128 @@ export default function SignInModal({
                       <div className="w-full border-t border-gray-200" />
                     </div>
                     <div className="relative flex justify-center text-xs">
-                      <span className="bg-white px-4 text-gray-400 font-bold uppercase tracking-widest">or</span>
+                      <span className="bg-white px-4 text-gray-400 font-bold uppercase tracking-widest">
+                        or
+                      </span>
                     </div>
                   </div>
                 </>
               )}
 
-              <form onSubmit={handleDemo} className="space-y-3">
-                <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
-                    Quick login {!hasGoogle && "(any email works)"}
-                  </label>
+              <form onSubmit={handleSubmit} className="space-y-3">
+                {mode === "register" && (
+                  <div className="relative">
+                    <UserIcon
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                      size={18}
+                    />
+                    <input
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your name"
+                      autoComplete="name"
+                      className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1a3d2b] focus:outline-none transition text-sm"
+                    />
+                  </div>
+                )}
+
+                <div className="relative">
+                  <Mail
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
+                    autoComplete={mode === "login" ? "username" : "email"}
                     required
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1a3d2b] focus:outline-none transition text-sm"
+                    className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1a3d2b] focus:outline-none transition text-sm"
                   />
                 </div>
-                <div>
+
+                <div className="relative">
+                  <Lock
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
                   <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Your name (optional)"
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1a3d2b] focus:outline-none transition text-sm"
+                    type={showPass ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={
+                      mode === "register" ? "Password (min 6 chars)" : "Password"
+                    }
+                    autoComplete={
+                      mode === "login" ? "current-password" : "new-password"
+                    }
+                    required
+                    minLength={6}
+                    className="w-full pl-12 pr-12 py-3 rounded-xl border-2 border-gray-200 focus:border-[#1a3d2b] focus:outline-none transition text-sm"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    tabIndex={-1}
+                  >
+                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
+
+                {error && (
+                  <div className="flex items-start gap-2 text-red-600 bg-red-50 border border-red-100 rounded-lg p-3 text-xs">
+                    <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {success && (
+                  <div className="flex items-start gap-2 text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg p-3 text-xs">
+                    <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
+                    <span>{success}</span>
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  disabled={loading !== null || !email.includes("@")}
+                  disabled={loading !== null}
                   className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-[#1a3d2b] text-white font-bold text-sm hover:bg-[#0d2818] transition disabled:opacity-50"
                 >
-                  {loading === "demo" ? (
+                  {loading === "credentials" ? (
                     <Loader2 className="animate-spin" size={18} />
+                  ) : mode === "login" ? (
+                    "Sign In"
                   ) : (
-                    <>
-                      Continue <ArrowRight size={16} />
-                    </>
+                    "Create Account"
                   )}
                 </button>
               </form>
 
-              <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-                {!hasGoogle && (
+              <p className="text-xs text-gray-400 text-center">
+                {mode === "login" ? (
                   <>
-                    Google OAuth is not configured — using demo login.
-                    <br />
+                    No account?{" "}
+                    <button
+                      onClick={() => switchMode("register")}
+                      className="text-[#1a3d2b] font-bold hover:underline"
+                    >
+                      Register here
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Already have an account?{" "}
+                    <button
+                      onClick={() => switchMode("login")}
+                      className="text-[#1a3d2b] font-bold hover:underline"
+                    >
+                      Sign in
+                    </button>
                   </>
                 )}
-                The first user to sign in becomes admin automatically.
               </p>
             </div>
           </motion.div>
