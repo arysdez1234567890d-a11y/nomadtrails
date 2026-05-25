@@ -32,20 +32,20 @@ ALTER TABLE users ALTER COLUMN google_id DROP NOT NULL;
 
 -- ---------- 4. Создаём админский аккаунт ----------
 -- Email:    admin@gmail.com
--- Password: admin123
+-- Password: 2026baitur
 --
--- bcrypt-хеш сгенерирован через crypt('admin123', gen_salt('bf'))
+-- bcrypt-хеш сгенерирован через crypt('2026baitur', gen_salt('bf'))
 INSERT INTO users (name, email, role, password_hash, image)
 VALUES (
   'Administrator',
   'admin@gmail.com',
   'admin',
-  crypt('admin123', gen_salt('bf', 10)),
+  crypt('2026baitur', gen_salt('bf', 10)),
   'https://api.dicebear.com/7.x/initials/svg?seed=Admin&backgroundColor=c9a84c'
 )
 ON CONFLICT (email) DO UPDATE SET
   role = 'admin',
-  password_hash = crypt('admin123', gen_salt('bf', 10)),
+  password_hash = crypt('2026baitur', gen_salt('bf', 10)),
   name = 'Administrator';
 
 -- =====================================================================
@@ -59,5 +59,5 @@ ON CONFLICT (email) DO UPDATE SET
 --   1. Откройте http://localhost:3000/en
 --   2. Login → Sign In tab
 --   3. Email: admin@gmail.com
---   4. Password: admin123
+--   4. Password: 2026baitur
 -- =====================================================================

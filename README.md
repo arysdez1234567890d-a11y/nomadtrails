@@ -65,7 +65,7 @@ npm run dev
 | Поле | Значение |
 |------|----------|
 | **Email** | `admin@gmail.com` |
-| **Password** | `admin123` |
+| **Password** | `2026baitur` |
 
 Вход: кнопка **Login** в navbar → вкладка **Sign In** → введите email/пароль.
 
@@ -101,7 +101,7 @@ npm run dev
 4. Запускают все 3 SQL из `backend/` в своём Supabase
 5. `npm install && npm run dev`
 
-В обоих случаях админ-аккаунт `admin@gmail.com / admin123` создаётся через `setup-auth.sql`.
+В обоих случаях админ-аккаунт `admin@gmail.com / 2026baitur` создаётся через `setup-auth.sql`.
 
 ---
 
