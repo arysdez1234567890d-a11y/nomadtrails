@@ -18,22 +18,27 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
 
   const t = await getTranslations("admin");
 
-  const { data: rawBookings } = await supabase
-    .from('bookings')
-    .select(`
-      *,
-      tours(name_en, name_ru, name_ky),
-      hotels(name_en, name_ru, name_ky),
-      transport_options(title_en, title_ru, title_ky)
-    `)
-    .order('created_at', { ascending: false });
+  let bookings: any[] = [];
+  try {
+    const { data: rawBookings } = await supabase
+      .from('bookings')
+      .select(`
+        *,
+        tours(name_en, name_ru, name_ky),
+        hotels(name_en, name_ru, name_ky),
+        transport_options(title_en, title_ru, title_ky)
+      `)
+      .order('created_at', { ascending: false });
 
-  const bookings = (rawBookings ?? []).map((b: any) => ({
-    ...b,
-    tour_name: b.tours?.[`name_${locale}`] ?? null,
-    hotel_name: b.hotels?.[`name_${locale}`] ?? null,
-    transport_title: b.transport_options?.[`title_${locale}`] ?? null,
-  }));
+    bookings = (rawBookings ?? []).map((b: any) => ({
+      ...b,
+      tour_name: b.tours?.[`name_${locale}`] ?? null,
+      hotel_name: b.hotels?.[`name_${locale}`] ?? null,
+      transport_title: b.transport_options?.[`title_${locale}`] ?? null,
+    }));
+  } catch (e: any) {
+    console.error("[admin] bookings query failed:", e?.message ?? e);
+  }
 
   const stats = {
     total: bookings.length,

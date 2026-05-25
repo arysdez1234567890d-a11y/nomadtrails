@@ -12,39 +12,58 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
   const session = await auth();
   const t = await getTranslations("profile");
 
-  if (!session || !session.user) {
+  if (!session || !session.user || !session.user.email) {
     redirect(`/${locale}`);
   }
 
-  const { data: userRows } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', session.user.email)
-    .limit(1);
+  let userData: any = null;
+  let bookings: any[] = [];
 
-  const userData = userRows?.[0];
+  try {
+    const { data: userRows } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', session.user.email)
+      .limit(1);
+    userData = userRows?.[0] ?? null;
+  } catch (e: any) {
+    console.error("[profile] users query failed:", e?.message ?? e);
+  }
 
   if (!userData) {
-    redirect(`/${locale}`);
+    // Fallback to session info so the page still renders for fresh users
+    userData = {
+      id: null,
+      name: session.user.name,
+      email: session.user.email,
+      image: session.user.image,
+      role: 'user',
+    };
   }
 
-  const { data: rawBookings } = await supabase
-    .from('bookings')
-    .select(`
-      *,
-      tours(name_en, name_ru, name_ky),
-      hotels(name_en, name_ru, name_ky),
-      transport_options(title_en, title_ru, title_ky)
-    `)
-    .eq('user_id', userData.id)
-    .order('created_at', { ascending: false });
+  if (userData.id) {
+    try {
+      const { data: rawBookings } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          tours(name_en, name_ru, name_ky),
+          hotels(name_en, name_ru, name_ky),
+          transport_options(title_en, title_ru, title_ky)
+        `)
+        .eq('user_id', userData.id)
+        .order('created_at', { ascending: false });
 
-  const bookings = (rawBookings ?? []).map((b: any) => ({
-    ...b,
-    tour_name: b.tours?.[`name_${locale}`] ?? null,
-    hotel_name: b.hotels?.[`name_${locale}`] ?? null,
-    transport_title: b.transport_options?.[`title_${locale}`] ?? null,
-  }));
+      bookings = (rawBookings ?? []).map((b: any) => ({
+        ...b,
+        tour_name: b.tours?.[`name_${locale}`] ?? null,
+        hotel_name: b.hotels?.[`name_${locale}`] ?? null,
+        transport_title: b.transport_options?.[`title_${locale}`] ?? null,
+      }));
+    } catch (e: any) {
+      console.error("[profile] bookings query failed:", e?.message ?? e);
+    }
+  }
 
   const translations = {
     my_bookings: t("my_bookings"),
