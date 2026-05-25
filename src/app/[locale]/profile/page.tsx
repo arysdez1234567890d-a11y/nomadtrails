@@ -47,8 +47,8 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
         .from('bookings')
         .select(`
           *,
-          tours(name_en, name_ru, name_ky),
-          hotels(name_en, name_ru, name_ky),
+          tours(name_en, name_ru, name_ky, price_usd),
+          hotels(name_en, name_ru, name_ky, price_per_night),
           transport_options(title_en, title_ru, title_ky)
         `)
         .eq('user_id', userData.id)
