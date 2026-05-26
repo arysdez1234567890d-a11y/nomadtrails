@@ -3,17 +3,15 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { getTranslations } from "next-intl/server";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import {
-  ShieldCheck,
   Calendar,
-  CheckCircle,
+  CheckCircle2,
   Clock,
-  Users,
+  Users as UsersIcon,
   Mail,
   DollarSign,
-  Map,
+  TrendingUp,
+  ArrowUpRight,
 } from "lucide-react";
 import AdminTabs from "@/components/AdminTabs";
 
@@ -31,22 +29,16 @@ export default async function AdminDashboard({
 
   const t = await getTranslations("admin");
 
-  // Fetch bookings with joins
   let bookings: any[] = [];
   try {
-    const { data: rawBookings } = await supabase
+    const { data } = await supabase
       .from("bookings")
       .select(
-        `
-        *,
-        tours(name_en, name_ru, name_ky, price_usd),
-        hotels(name_en, name_ru, name_ky, price_per_night),
-        transport_options(title_en, title_ru, title_ky)
-      `
+        `*, tours(name_en, name_ru, name_ky, price_usd), hotels(name_en, name_ru, name_ky, price_per_night), transport_options(title_en, title_ru, title_ky)`
       )
       .order("created_at", { ascending: false });
 
-    bookings = (rawBookings ?? []).map((b: any) => ({
+    bookings = (data ?? []).map((b: any) => ({
       ...b,
       tour_name: b.tours?.[`name_${locale}`] ?? null,
       hotel_name: b.hotels?.[`name_${locale}`] ?? null,
@@ -54,18 +46,15 @@ export default async function AdminDashboard({
       price: b.tours?.price_usd ?? b.hotels?.price_per_night ?? null,
     }));
   } catch (e: any) {
-    console.error("[admin] bookings query failed:", e?.message ?? e);
+    console.error("[admin] bookings:", e?.message ?? e);
   }
 
-  // Compute stats
   let revenue = 0;
   bookings.forEach((b: any) => {
-    if (b.status === "confirmed" && b.price) {
+    if (b.status === "confirmed" && b.price)
       revenue += Number(b.price) * (b.guests || 1);
-    }
   });
 
-  // Get counts in parallel
   const [
     { count: totalUsers },
     { count: totalTours },
@@ -122,119 +111,206 @@ export default async function AdminDashboard({
   };
 
   return (
-    <>
-      <Navbar />
-      <main className="min-h-screen pt-24 pb-20 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-slate-900 via-emerald-950 to-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-6 px-4 md:px-0">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-black font-playfair text-white flex items-center gap-4 mb-2">
-                <div className="w-12 h-12 rounded-2xl bg-[#c9a84c] flex items-center justify-center shadow-lg shadow-[#c9a84c]/20">
-                  <ShieldCheck className="text-white" size={28} />
-                </div>
-                {t("dashboard_title")}
-              </h1>
-              <p className="text-emerald-400/60 font-bold text-[10px] uppercase tracking-[0.3em] ml-16">
-                Welcome back, {session.user.name}
-              </p>
+    <div className="space-y-6">
+      {/* Page heading */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-700 mb-1">
+            Overview
+          </p>
+          <h2 className="text-3xl font-black font-playfair text-slate-900">
+            Welcome back, {session.user.name?.split(" ")[0] ?? "Admin"}
+          </h2>
+          <p className="text-sm text-slate-500 mt-1">
+            Here's what's happening with NomadTrails today
+          </p>
+        </div>
+        <div className="text-xs text-slate-400 font-medium">
+          {new Date().toLocaleDateString(undefined, {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+        </div>
+      </div>
+
+      {/* Big stat hero */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-2 bg-gradient-to-br from-[#0a0f14] via-[#0d2818] to-[#1a3d2b] rounded-2xl p-6 text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-[#c9a84c]/10 rounded-full blur-3xl -mr-32 -mt-32" />
+          <div className="relative z-10">
+            <div className="flex items-center gap-2 mb-2">
+              <DollarSign size={14} className="text-[#c9a84c]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c9a84c]">
+                Total Revenue
+              </span>
+            </div>
+            <p className="text-5xl font-black tabular-nums mb-1">
+              ${stats.revenue.toLocaleString()}
+            </p>
+            <p className="text-sm text-white/50">
+              From {stats.confirmed} confirmed booking{stats.confirmed === 1 ? "" : "s"}
+            </p>
+            <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/10">
+              <MiniStat label="Total" value={stats.total} />
+              <MiniStat label="New" value={stats.new} highlight={stats.new > 0} />
+              <MiniStat label="Confirmed" value={stats.confirmed} />
             </div>
           </div>
-
-          {/* Stats grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-10">
-            <StatCard
-              label="Revenue"
-              value={"$" + stats.revenue.toLocaleString()}
-              icon={DollarSign}
-              accent="text-emerald-400"
-              big
-            />
-            <StatCard
-              label="Bookings"
-              value={stats.total}
-              icon={Calendar}
-              accent="text-blue-400"
-            />
-            <StatCard
-              label="New"
-              value={stats.new}
-              icon={Clock}
-              accent="text-orange-400"
-            />
-            <StatCard
-              label="Confirmed"
-              value={stats.confirmed}
-              icon={CheckCircle}
-              accent="text-emerald-400"
-            />
-            <StatCard
-              label="Users"
-              value={stats.users}
-              icon={Users}
-              accent="text-violet-400"
-            />
-            <StatCard
-              label="Messages"
-              value={stats.unread_messages}
-              icon={Mail}
-              accent="text-pink-400"
-              badge={stats.unread_messages > 0}
-            />
-          </div>
-
-          {/* Tabs panel */}
-          <div className="bg-white/5 backdrop-blur-2xl rounded-[2rem] md:rounded-[3rem] shadow-2xl overflow-hidden border border-white/10">
-            <AdminTabs
-              initialBookings={bookings}
-              translations={translations}
-              locale={locale}
-            />
-          </div>
         </div>
-      </main>
-      <Footer />
-    </>
+
+        <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
+          <StatCard
+            icon={UsersIcon}
+            label="Registered Users"
+            value={stats.users}
+            color="bg-violet-100 text-violet-600"
+            trend={stats.users > 0 ? `${stats.users} total` : "No users yet"}
+          />
+          <StatCard
+            icon={Mail}
+            label="Unread Messages"
+            value={stats.unread_messages}
+            color="bg-pink-100 text-pink-600"
+            trend={stats.unread_messages > 0 ? "Needs attention" : "All caught up"}
+            urgent={stats.unread_messages > 0}
+          />
+        </div>
+      </div>
+
+      {/* Secondary stats row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          icon={Calendar}
+          label="Bookings"
+          value={stats.total}
+          color="text-blue-600"
+          bg="bg-blue-50"
+        />
+        <MetricCard
+          icon={Clock}
+          label="New requests"
+          value={stats.new}
+          color="text-orange-600"
+          bg="bg-orange-50"
+          badge={stats.new > 0}
+        />
+        <MetricCard
+          icon={CheckCircle2}
+          label="Confirmed"
+          value={stats.confirmed}
+          color="text-emerald-600"
+          bg="bg-emerald-50"
+        />
+        <MetricCard
+          icon={TrendingUp}
+          label="Tours · Hotels"
+          value={`${stats.tours} · ${stats.hotels}`}
+          color="text-slate-600"
+          bg="bg-slate-100"
+        />
+      </div>
+
+      {/* Tabs panel */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <AdminTabs
+          initialBookings={bookings}
+          translations={translations}
+          locale={locale}
+        />
+      </div>
+    </div>
   );
 }
 
-function StatCard({
+function MiniStat({
   label,
   value,
-  icon: Icon,
-  accent,
-  big = false,
-  badge = false,
+  highlight = false,
 }: {
   label: string;
-  value: any;
-  icon: any;
-  accent: string;
-  big?: boolean;
-  badge?: boolean;
+  value: number;
+  highlight?: boolean;
 }) {
   return (
-    <div className="relative bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 hover:bg-white/[0.08] transition-all">
-      <div className="flex items-center justify-between mb-3">
-        <div
-          className={`w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center ${accent} border border-white/10`}
-        >
-          <Icon size={18} />
-        </div>
-        {badge && (
-          <span className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
-        )}
-      </div>
-      <p className="text-[9px] text-white/40 uppercase font-black tracking-widest mb-1">
+    <div>
+      <p className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1">
         {label}
       </p>
       <p
-        className={`font-black text-white tabular-nums ${
-          big ? "text-2xl" : "text-xl"
+        className={`text-xl font-black tabular-nums ${
+          highlight ? "text-[#c9a84c]" : "text-white"
         }`}
       >
         {value}
       </p>
+    </div>
+  );
+}
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  color,
+  trend,
+  urgent = false,
+}: {
+  icon: any;
+  label: string;
+  value: number;
+  color: string;
+  trend?: string;
+  urgent?: boolean;
+}) {
+  return (
+    <div className="bg-white rounded-2xl p-5 border border-slate-200 hover:border-slate-300 hover:shadow-md transition-all relative">
+      {urgent && (
+        <span className="absolute top-3 right-3 flex h-2 w-2">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pink-400 opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-pink-500" />
+        </span>
+      )}
+      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 ${color}`}>
+        <Icon size={18} />
+      </div>
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+        {label}
+      </p>
+      <p className="text-2xl font-black text-slate-900 tabular-nums">{value}</p>
+      {trend && <p className="text-[11px] text-slate-500 mt-1">{trend}</p>}
+    </div>
+  );
+}
+
+function MetricCard({
+  icon: Icon,
+  label,
+  value,
+  color,
+  bg,
+  badge = false,
+}: {
+  icon: any;
+  label: string;
+  value: number | string;
+  color: string;
+  bg: string;
+  badge?: boolean;
+}) {
+  return (
+    <div className="bg-white rounded-2xl p-4 border border-slate-200 hover:border-slate-300 transition-all">
+      <div className="flex items-center justify-between mb-3">
+        <div className={`w-9 h-9 rounded-lg ${bg} ${color} flex items-center justify-center`}>
+          <Icon size={16} />
+        </div>
+        {badge && <span className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />}
+      </div>
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
+        {label}
+      </p>
+      <p className="text-xl font-black text-slate-900 tabular-nums">{value}</p>
     </div>
   );
 }

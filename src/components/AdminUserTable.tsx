@@ -38,10 +38,7 @@ export default function AdminUserTable() {
       setLoading(false);
     }
   }
-
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function toggleRole(u: User) {
     setWorking(u.id);
@@ -53,9 +50,7 @@ export default function AdminUserTable() {
         body: JSON.stringify({ userId: u.id, role: newRole }),
       });
       if (res.ok) {
-        setUsers((prev) =>
-          prev.map((x) => (x.id === u.id ? { ...x, role: newRole as any } : x))
-        );
+        setUsers((prev) => prev.map((x) => (x.id === u.id ? { ...x, role: newRole as any } : x)));
       }
     } finally {
       setWorking(null);
@@ -75,77 +70,71 @@ export default function AdminUserTable() {
 
   const filtered = users.filter((u) => {
     const s = search.toLowerCase();
-    return (
-      !s ||
-      u.email.toLowerCase().includes(s) ||
-      (u.name || "").toLowerCase().includes(s)
-    );
+    return !s || u.email.toLowerCase().includes(s) || (u.name || "").toLowerCase().includes(s);
   });
 
   const totalAdmins = users.filter((u) => u.role === "admin").length;
 
   return (
-    <div className="p-6 md:p-10">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div className="p-6 lg:p-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black font-playfair text-white mb-1">
-            Registered Users
-          </h2>
-          <p className="text-emerald-400/40 text-xs uppercase tracking-widest font-bold">
+          <h2 className="text-xl font-black font-playfair text-slate-900">Registered Users</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
             {users.length} total · {totalAdmins} admin{totalAdmins !== 1 ? "s" : ""}
           </p>
         </div>
 
         <div className="relative max-w-sm w-full">
-          <Search
-            size={16}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
-          />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or email..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:border-[#c9a84c] focus:outline-none transition"
+            className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#c9a84c] focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/20 transition"
           />
         </div>
       </div>
 
       {loading ? (
-        <SkeletonRows />
+        <div className="space-y-2">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="bg-slate-100 rounded-xl p-4 animate-pulse h-20" />
+          ))}
+        </div>
       ) : filtered.length === 0 ? (
-        <EmptyState message={users.length === 0 ? "No users yet" : "No matches found"} />
+        <div className="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+          <UsersIcon className="mx-auto text-slate-300 mb-3" size={32} />
+          <p className="text-sm font-medium text-slate-500">
+            {users.length === 0 ? "No users yet" : "No matches found"}
+          </p>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filtered.map((u) => (
             <div
               key={u.id}
-              className="bg-white/5 hover:bg-white/[0.08] border border-white/10 rounded-2xl p-4 transition-all flex flex-col md:flex-row md:items-center gap-4"
+              className="bg-white hover:bg-slate-50 border border-slate-200 rounded-xl p-4 transition flex flex-col md:flex-row md:items-center gap-4"
             >
-              {/* Avatar + name */}
-              <div className="flex items-center gap-4 flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 {u.image ? (
-                  <img
-                    src={u.image}
-                    alt=""
-                    className="w-12 h-12 rounded-full border-2 border-white/10 shrink-0"
-                  />
+                  <img src={u.image} alt="" className="w-11 h-11 rounded-full border border-slate-200 shrink-0" />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-[#c9a84c]/20 text-[#c9a84c] flex items-center justify-center font-black text-lg shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#c9a84c] to-[#a8862a] text-[#0a0f14] flex items-center justify-center font-black text-lg shrink-0">
                     {(u.name || u.email)?.[0]?.toUpperCase() || "?"}
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-white font-bold truncate">{u.name || "—"}</p>
+                    <p className="text-slate-900 font-bold truncate">{u.name || "—"}</p>
                     {u.role === "admin" && (
-                      <span className="text-[9px] font-black uppercase tracking-widest bg-[#c9a84c] text-[#1a3d2b] px-2 py-0.5 rounded-full">
+                      <span className="text-[9px] font-black uppercase tracking-widest bg-[#c9a84c] text-[#0a0f14] px-2 py-0.5 rounded-full">
                         Admin
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-white/40 mt-1 flex-wrap">
+                  <div className="flex items-center gap-3 text-xs text-slate-500 mt-0.5 flex-wrap">
                     <span className="flex items-center gap-1.5">
                       <Mail size={11} /> {u.email}
                     </span>
@@ -158,76 +147,48 @@ export default function AdminUserTable() {
                 </div>
               </div>
 
-              {/* Stats */}
-              <div className="flex items-center gap-6 text-xs text-white/50">
+              <div className="flex items-center gap-6 text-xs">
                 <div>
-                  <p className="text-[9px] uppercase tracking-widest text-white/30 mb-0.5">
-                    Bookings
-                  </p>
-                  <p className="text-white font-bold">{u.bookings_count}</p>
+                  <p className="text-[9px] uppercase tracking-widest text-slate-400 mb-0.5">Bookings</p>
+                  <p className="text-slate-900 font-bold">{u.bookings_count}</p>
                 </div>
                 <div>
-                  <p className="text-[9px] uppercase tracking-widest text-white/30 mb-0.5 flex items-center gap-1">
+                  <p className="text-[9px] uppercase tracking-widest text-slate-400 mb-0.5 flex items-center gap-1">
                     <Calendar size={10} /> Joined
                   </p>
-                  <p className="text-white font-bold">
+                  <p className="text-slate-900 font-bold">
                     {new Date(u.created_at).toLocaleDateString()}
                   </p>
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex gap-2 md:shrink-0">
                 <button
                   onClick={() => toggleRole(u)}
                   disabled={working === u.id}
                   title={u.role === "admin" ? "Remove admin" : "Make admin"}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all border ${
+                  className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition border ${
                     u.role === "admin"
-                      ? "bg-white/5 text-white/60 border-white/10 hover:bg-white/10"
-                      : "bg-[#c9a84c]/10 text-[#c9a84c] border-[#c9a84c]/30 hover:bg-[#c9a84c] hover:text-[#1a3d2b]"
+                      ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+                      : "bg-[#c9a84c]/10 text-[#a8862a] border-[#c9a84c]/30 hover:bg-[#c9a84c] hover:text-white"
                   } disabled:opacity-50`}
                 >
-                  {u.role === "admin" ? <ShieldOff size={14} /> : <ShieldCheck size={14} />}
-                  <span className="hidden sm:inline">
-                    {u.role === "admin" ? "Demote" : "Promote"}
-                  </span>
+                  {u.role === "admin" ? <ShieldOff size={13} /> : <ShieldCheck size={13} />}
+                  <span className="hidden sm:inline">{u.role === "admin" ? "Demote" : "Promote"}</span>
                 </button>
                 <button
                   onClick={() => deleteUser(u)}
                   disabled={working === u.id}
-                  className="px-3 py-2 rounded-xl text-xs bg-white/5 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-white/10 disabled:opacity-50"
+                  className="px-3 py-2 rounded-lg text-xs bg-white text-red-600 hover:bg-red-500 hover:text-white transition border border-slate-200 disabled:opacity-50"
                   title="Delete user"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 size={13} />
                 </button>
               </div>
             </div>
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function SkeletonRows() {
-  return (
-    <div className="space-y-3">
-      {[0, 1, 2].map((i) => (
-        <div
-          key={i}
-          className="bg-white/5 border border-white/10 rounded-2xl p-4 animate-pulse h-20"
-        />
-      ))}
-    </div>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
-      <UsersIcon className="mx-auto text-white/20 mb-4" size={40} />
-      <p className="text-white/30 font-black uppercase tracking-widest text-xs">{message}</p>
     </div>
   );
 }

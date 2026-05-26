@@ -3,7 +3,6 @@ import { useState, useMemo } from "react";
 import {
   CheckCircle,
   XCircle,
-  Calendar,
   Clock,
   Search,
   Filter,
@@ -13,8 +12,8 @@ import {
   Phone,
   MessageCircle,
   ArrowUpDown,
-  DollarSign,
   Inbox,
+  Download,
 } from "lucide-react";
 
 type Booking = {
@@ -100,35 +99,13 @@ export default function AdminBookingTable({
   }, [bookings, search, statusFilter, typeFilter, sortDesc]);
 
   const exportCSV = () => {
-    const headers = [
-      "id",
-      "type",
-      "client",
-      "email",
-      "phone",
-      "item",
-      "date",
-      "guests",
-      "price",
-      "status",
-      "created_at",
-    ];
+    const headers = ["id","type","client","email","phone","item","date","guests","price","status","created_at"];
     const rows = filtered.map((b) => [
-      b.id,
-      b.item_type,
-      b.full_name,
-      b.email,
-      b.phone ?? "",
+      b.id, b.item_type, b.full_name, b.email, b.phone ?? "",
       b.tour_name || b.hotel_name || b.transport_title || "",
-      b.preferred_date,
-      b.guests,
-      b.price ?? "",
-      b.status,
-      b.created_at,
+      b.preferred_date, b.guests, b.price ?? "", b.status, b.created_at,
     ]);
-    const csv = [headers, ...rows]
-      .map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    const csv = [headers, ...rows].map((r) => r.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -139,26 +116,30 @@ export default function AdminBookingTable({
   };
 
   return (
-    <div className="p-6 md:p-10">
+    <div className="p-6 lg:p-8">
+      {/* Heading */}
+      <div className="mb-6">
+        <h2 className="text-xl font-black font-playfair text-slate-900">Bookings</h2>
+        <p className="text-sm text-slate-500 mt-0.5">
+          {filtered.length} of {bookings.length} bookings shown
+        </p>
+      </div>
+
       {/* Toolbar */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-6">
+      <div className="flex flex-col lg:flex-row gap-3 mb-6">
         <div className="relative flex-1 max-w-md">
-          <Search
-            size={16}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30"
-          />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email, phone, item..."
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/30 focus:border-[#c9a84c] focus:outline-none transition"
+            className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#c9a84c] focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/20 transition"
           />
         </div>
 
         <div className="flex flex-wrap gap-2">
           <SelectPill
-            icon={Filter}
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
@@ -181,141 +162,95 @@ export default function AdminBookingTable({
           />
           <button
             onClick={() => setSortDesc(!sortDesc)}
-            className="px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-bold flex items-center gap-2 hover:bg-white/10 transition"
+            className="px-3 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-2 hover:bg-slate-50 transition"
           >
-            <ArrowUpDown size={14} />
+            <ArrowUpDown size={13} />
             {sortDesc ? "Newest" : "Oldest"}
           </button>
           <button
             onClick={exportCSV}
-            className="px-4 py-3 rounded-xl bg-[#c9a84c]/10 border border-[#c9a84c]/30 text-[#c9a84c] text-xs font-bold flex items-center gap-2 hover:bg-[#c9a84c] hover:text-[#1a3d2b] transition"
+            className="px-3 py-2.5 rounded-lg bg-[#0a0f14] text-white text-xs font-bold flex items-center gap-2 hover:bg-[#1a3d2b] transition"
           >
+            <Download size={13} />
             Export CSV
           </button>
         </div>
       </div>
 
-      {/* Result count */}
-      <p className="text-xs text-white/40 mb-4">
-        Showing {filtered.length} of {bookings.length} bookings
-      </p>
-
-      {/* Booking list */}
+      {/* List */}
       {filtered.length === 0 ? (
-        <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
-          <Inbox className="mx-auto text-white/20 mb-4" size={40} />
-          <p className="text-white/30 font-black uppercase tracking-widest text-xs">
-            No bookings match your filters
-          </p>
+        <div className="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+          <Inbox className="mx-auto text-slate-300 mb-3" size={32} />
+          <p className="text-sm font-medium text-slate-500">No bookings match your filters</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filtered.map((b) => {
             const isOpen = expandedId === b.id;
-            const title =
-              b.tour_name || b.hotel_name || b.transport_title || "—";
+            const title = b.tour_name || b.hotel_name || b.transport_title || "—";
             return (
               <div
                 key={b.id}
-                className="bg-white/5 hover:bg-white/[0.08] border border-white/10 rounded-2xl overflow-hidden transition-all"
+                className="bg-white hover:bg-slate-50 border border-slate-200 rounded-xl overflow-hidden transition"
               >
-                <div
-                  className="p-4 cursor-pointer"
-                  onClick={() => setExpandedId(isOpen ? null : b.id)}
-                >
-                  <div className="flex items-start gap-4 flex-wrap">
-                    {/* Status badge */}
+                <div className="p-4 cursor-pointer" onClick={() => setExpandedId(isOpen ? null : b.id)}>
+                  <div className="flex items-start gap-3 flex-wrap">
                     <StatusBadge status={b.status} translations={translations} />
 
-                    {/* Client */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[9px] text-white/30 font-black tracking-widest uppercase">
-                          #{b.id}
-                        </span>
-                        <span className="text-[9px] bg-white/5 text-[#c9a84c] px-2 py-0.5 rounded-full uppercase font-black tracking-widest border border-white/10">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-[9px] text-slate-400 font-black tracking-widest uppercase">#{b.id}</span>
+                        <span className="text-[9px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded uppercase font-black tracking-widest">
                           {translations[b.item_type] || b.item_type}
                         </span>
                       </div>
-                      <p className="text-white font-bold truncate">{b.full_name}</p>
-                      <p className="text-xs text-white/40 truncate">{b.email}</p>
+                      <p className="text-slate-900 font-bold text-sm truncate">{b.full_name}</p>
+                      <p className="text-xs text-slate-500 truncate">{b.email}</p>
                     </div>
 
-                    {/* Item */}
                     <div className="hidden md:block min-w-0 max-w-xs flex-1">
-                      <p className="text-[9px] text-white/30 font-black tracking-widest uppercase mb-1">
-                        Item
-                      </p>
-                      <p className="text-white/80 font-bold truncate">{title}</p>
+                      <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Item</p>
+                      <p className="text-slate-700 font-bold text-sm truncate">{title}</p>
                     </div>
 
-                    {/* Date */}
                     <div className="hidden md:block">
-                      <p className="text-[9px] text-white/30 font-black tracking-widest uppercase mb-1">
-                        Date
-                      </p>
-                      <p className="text-white/80 font-bold text-sm whitespace-nowrap">
-                        {b.preferred_date
-                          ? new Date(b.preferred_date).toLocaleDateString()
-                          : "—"}
-                      </p>
-                      <p className="text-[10px] text-white/40">
-                        {b.guests} {translations.guests}
+                      <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Date</p>
+                      <p className="text-slate-700 font-bold text-sm whitespace-nowrap">
+                        {b.preferred_date ? new Date(b.preferred_date).toLocaleDateString() : "—"}
                       </p>
                     </div>
 
-                    {/* Price */}
                     {b.price && (
                       <div className="hidden lg:block text-right">
-                        <p className="text-[9px] text-white/30 font-black tracking-widest uppercase mb-1">
-                          Total
-                        </p>
-                        <p className="text-[#c9a84c] font-bold tabular-nums">
+                        <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Total</p>
+                        <p className="text-[#c9a84c] font-bold tabular-nums text-sm">
                           ${Math.round(Number(b.price) * (b.guests || 1))}
                         </p>
                       </div>
                     )}
 
-                    {/* Toggle */}
-                    <ChevronDown
-                      size={18}
-                      className={`text-white/40 transition-transform ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
+                    <ChevronDown size={16} className={`text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
                   </div>
                 </div>
 
                 {isOpen && (
-                  <div className="bg-black/30 border-t border-white/10 p-5 space-y-4">
-                    {/* Contact actions */}
+                  <div className="bg-slate-50 border-t border-slate-200 p-4 space-y-3">
                     <div className="flex flex-wrap gap-2">
-                      <CopyChip
-                        icon={Mail}
-                        label={b.email}
-                        onClick={() => copyToClipboard(b.email)}
-                        copied={copied === b.email}
-                      />
+                      <CopyChip icon={Mail} label={b.email} onClick={() => copyToClipboard(b.email)} copied={copied === b.email} />
                       {b.phone && (
-                        <CopyChip
-                          icon={Phone}
-                          label={b.phone}
-                          onClick={() => copyToClipboard(b.phone!)}
-                          copied={copied === b.phone}
-                        />
+                        <CopyChip icon={Phone} label={b.phone} onClick={() => copyToClipboard(b.phone!)} copied={copied === b.phone} />
                       )}
                       <a
                         href={`mailto:${b.email}?subject=Re: Booking #${b.id}`}
-                        className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-xs font-bold border border-white/10 flex items-center gap-2 transition"
+                        className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-2 transition"
                       >
                         <Mail size={12} /> Email
                       </a>
                       {b.phone && (
                         <a
                           href={`https://wa.me/${b.phone.replace(/[^0-9+]/g, "")}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500 hover:text-white text-emerald-400 text-xs font-bold border border-emerald-500/30 flex items-center gap-2 transition"
+                          target="_blank" rel="noopener noreferrer"
+                          className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-xs font-bold border border-emerald-200 flex items-center gap-2 transition"
                         >
                           <MessageCircle size={12} /> WhatsApp
                         </a>
@@ -324,54 +259,39 @@ export default function AdminBookingTable({
 
                     {b.special_requests && (
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">
-                          Special requests
-                        </p>
-                        <p className="text-white/80 text-sm leading-relaxed">
-                          {b.special_requests}
-                        </p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Special requests</p>
+                        <p className="text-slate-700 text-sm leading-relaxed">{b.special_requests}</p>
                       </div>
                     )}
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
                       <Detail label="Item" value={title} />
-                      <Detail
-                        label="Date"
-                        value={
-                          b.preferred_date
-                            ? new Date(b.preferred_date).toLocaleDateString()
-                            : "—"
-                        }
-                      />
+                      <Detail label="Date" value={b.preferred_date ? new Date(b.preferred_date).toLocaleDateString() : "—"} />
                       <Detail label="Guests" value={String(b.guests)} />
-                      <Detail
-                        label="Created"
-                        value={new Date(b.created_at).toLocaleString()}
-                      />
+                      <Detail label="Created" value={new Date(b.created_at).toLocaleString()} />
                     </div>
 
-                    {/* Action buttons */}
-                    <div className="flex flex-wrap gap-2 pt-2 border-t border-white/10">
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
                       <button
                         onClick={() => updateStatus(b.id, "contacted")}
                         disabled={loadingId === b.id || b.status === "contacted"}
-                        className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold flex items-center gap-2 hover:bg-amber-500 hover:text-white transition disabled:opacity-30"
+                        className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold flex items-center gap-2 hover:bg-amber-500 hover:text-white transition disabled:opacity-30"
                       >
-                        <Clock size={14} /> Mark contacted
+                        <Clock size={13} /> Mark contacted
                       </button>
                       <button
                         onClick={() => updateStatus(b.id, "confirmed")}
                         disabled={loadingId === b.id || b.status === "confirmed"}
-                        className="px-4 py-2 rounded-xl bg-[#c9a84c] text-[#1a3d2b] text-xs font-bold flex items-center gap-2 hover:scale-105 transition disabled:opacity-30"
+                        className="px-3 py-2 rounded-lg bg-[#c9a84c] text-[#0a0f14] text-xs font-bold flex items-center gap-2 hover:scale-105 transition disabled:opacity-30"
                       >
-                        <CheckCircle size={14} /> {translations.action_confirm}
+                        <CheckCircle size={13} /> {translations.action_confirm}
                       </button>
                       <button
                         onClick={() => updateStatus(b.id, "cancelled")}
                         disabled={loadingId === b.id || b.status === "cancelled"}
-                        className="px-4 py-2 rounded-xl bg-white/5 text-red-400 border border-white/10 text-xs font-bold flex items-center gap-2 hover:bg-red-500 hover:text-white transition disabled:opacity-30"
+                        className="px-3 py-2 rounded-lg bg-white text-red-600 border border-slate-200 text-xs font-bold flex items-center gap-2 hover:bg-red-500 hover:text-white hover:border-red-500 transition disabled:opacity-30"
                       >
-                        <XCircle size={14} /> {translations.action_cancel}
+                        <XCircle size={13} /> {translations.action_cancel}
                       </button>
                     </div>
                   </div>
@@ -387,82 +307,44 @@ export default function AdminBookingTable({
 
 function StatusBadge({ status, translations }: { status: string; translations: any }) {
   const cls =
-    status === "confirmed"
-      ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-      : status === "cancelled"
-      ? "bg-red-500/20 text-red-400 border-red-500/30"
-      : status === "contacted"
-      ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
-      : "bg-blue-500/20 text-blue-400 border-blue-500/30";
+    status === "confirmed" ? "bg-emerald-100 text-emerald-700 border-emerald-200"
+    : status === "cancelled" ? "bg-red-100 text-red-700 border-red-200"
+    : status === "contacted" ? "bg-amber-100 text-amber-700 border-amber-200"
+    : "bg-blue-100 text-blue-700 border-blue-200";
   return (
-    <span
-      className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border whitespace-nowrap ${cls}`}
-    >
+    <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border whitespace-nowrap ${cls}`}>
       {translations[`status_${status}`] || status}
     </span>
   );
 }
 
-function SelectPill({
-  icon: Icon,
-  value,
-  onChange,
-  options,
-}: {
-  icon?: any;
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
+function SelectPill({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; }) {
   return (
     <div className="relative">
-      {Icon && (
-        <Icon
-          size={14}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none"
-        />
-      )}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`bg-white/5 border border-white/10 text-white text-xs font-bold rounded-xl py-3 ${
-          Icon ? "pl-9" : "pl-3"
-        } pr-8 appearance-none focus:border-[#c9a84c] focus:outline-none cursor-pointer transition`}
+        className="bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-lg py-2.5 pl-3 pr-8 appearance-none focus:border-[#c9a84c] focus:outline-none cursor-pointer transition"
       >
         {options.map((o) => (
-          <option key={o.value} value={o.value} className="bg-slate-900">
-            {o.label}
-          </option>
+          <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
-      <ChevronDown
-        size={14}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none"
-      />
+      <ChevronDown size={13} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
     </div>
   );
 }
 
-function CopyChip({
-  icon: Icon,
-  label,
-  onClick,
-  copied,
-}: {
-  icon: any;
-  label: string;
-  onClick: () => void;
-  copied: boolean;
-}) {
+function CopyChip({ icon: Icon, label, onClick, copied }: { icon: any; label: string; onClick: () => void; copied: boolean; }) {
   return (
     <button
       onClick={onClick}
-      className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 text-xs font-medium border border-white/10 flex items-center gap-2 transition"
+      className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-medium border border-slate-200 flex items-center gap-2 transition"
     >
       <Icon size={12} />
       <span className="truncate max-w-[200px]">{label}</span>
-      <Copy size={11} className={copied ? "text-emerald-400" : ""} />
-      {copied && <span className="text-emerald-400 text-[10px]">copied!</span>}
+      <Copy size={11} className={copied ? "text-emerald-600" : ""} />
+      {copied && <span className="text-emerald-600 text-[10px]">copied!</span>}
     </button>
   );
 }
@@ -470,10 +352,8 @@ function CopyChip({
 function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-white/40 mb-1">
-        {label}
-      </p>
-      <p className="text-white/80 font-medium">{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-0.5">{label}</p>
+      <p className="text-slate-700 font-medium">{value}</p>
     </div>
   );
 }

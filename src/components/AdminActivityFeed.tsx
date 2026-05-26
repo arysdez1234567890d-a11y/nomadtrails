@@ -11,7 +11,6 @@ import {
   RefreshCw,
   Activity,
   Filter,
-  ChevronRight,
 } from "lucide-react";
 
 type Event = {
@@ -32,38 +31,38 @@ type Event = {
 const TYPE_META: Record<string, { icon: any; color: string; bg: string; label: string }> = {
   booking_new: {
     icon: Calendar,
-    color: "text-blue-400",
-    bg: "bg-blue-500/10 border-blue-500/30",
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
     label: "New booking",
   },
   booking_confirmed: {
     icon: CheckCircle,
-    color: "text-emerald-400",
-    bg: "bg-emerald-500/10 border-emerald-500/30",
+    color: "text-emerald-600",
+    bg: "bg-emerald-50 border-emerald-200",
     label: "Booking confirmed",
   },
   booking_cancelled: {
     icon: XCircle,
-    color: "text-red-400",
-    bg: "bg-red-500/10 border-red-500/30",
+    color: "text-red-600",
+    bg: "bg-red-50 border-red-200",
     label: "Booking cancelled",
   },
   booking_contacted: {
     icon: Clock,
-    color: "text-amber-400",
-    bg: "bg-amber-500/10 border-amber-500/30",
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
     label: "Marked contacted",
   },
   user_signup: {
     icon: UserPlus,
-    color: "text-violet-400",
-    bg: "bg-violet-500/10 border-violet-500/30",
+    color: "text-violet-600",
+    bg: "bg-violet-50 border-violet-200",
     label: "New user",
   },
   message_new: {
     icon: Mail,
-    color: "text-pink-400",
-    bg: "bg-pink-500/10 border-pink-500/30",
+    color: "text-pink-600",
+    bg: "bg-pink-50 border-pink-200",
     label: "New message",
   },
 };
@@ -96,10 +95,7 @@ export default function AdminActivityFeed() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
-
+  useEffect(() => { load(); }, []);
   useEffect(() => {
     if (!autoRefresh) return;
     const t = setInterval(load, 15000);
@@ -113,7 +109,6 @@ export default function AdminActivityFeed() {
     return events.filter((e) => (f as any).types.includes(e.type));
   }, [events, filter]);
 
-  // Group by date label
   const grouped = useMemo(() => {
     const groups: { label: string; items: Event[] }[] = [];
     const now = new Date();
@@ -131,10 +126,7 @@ export default function AdminActivityFeed() {
       else label = d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
 
       let group = groups.find((g) => g.label === label);
-      if (!group) {
-        group = { label, items: [] };
-        groups.push(group);
-      }
+      if (!group) { group = { label, items: [] }; groups.push(group); }
       group.items.push(e);
     });
     return groups;
@@ -154,21 +146,21 @@ export default function AdminActivityFeed() {
   }
 
   return (
-    <div className="p-6 md:p-10">
+    <div className="p-6 lg:p-8">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black font-playfair text-white mb-1 flex items-center gap-3">
-            <Activity className="text-[#c9a84c]" size={26} />
+          <h2 className="text-xl font-black font-playfair text-slate-900 flex items-center gap-2.5">
+            <Activity className="text-[#c9a84c]" size={20} />
             Activity Feed
           </h2>
-          <p className="text-emerald-400/40 text-xs uppercase tracking-widest font-bold">
-            Live · {counts.total} events
+          <p className="text-sm text-slate-500 mt-0.5">
+            Live · {counts.total} event{counts.total === 1 ? "" : "s"}
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
-          <label className="flex items-center gap-2 text-xs text-white/50 cursor-pointer select-none">
+          <label className="flex items-center gap-2 text-xs text-slate-500 cursor-pointer select-none">
             <input
               type="checkbox"
               checked={autoRefresh}
@@ -180,7 +172,7 @@ export default function AdminActivityFeed() {
           <button
             onClick={load}
             disabled={refreshing}
-            className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 text-xs font-bold flex items-center gap-2 hover:bg-white/10 transition disabled:opacity-50"
+            className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-2 hover:bg-slate-50 transition disabled:opacity-50"
           >
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
             Refresh
@@ -189,10 +181,8 @@ export default function AdminActivityFeed() {
       </div>
 
       {/* Filter pills */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        <span className="flex items-center gap-2 text-xs text-white/30 mr-2">
-          <Filter size={12} />
-        </span>
+      <div className="flex flex-wrap gap-2 mb-6 items-center">
+        <Filter size={12} className="text-slate-400" />
         {FILTERS.map((f) => {
           const count =
             f.id === "all"
@@ -206,16 +196,16 @@ export default function AdminActivityFeed() {
             <button
               key={f.id}
               onClick={() => setFilter(f.id)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-2 ${
+              className={`px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-2 ${
                 filter === f.id
-                  ? "bg-[#c9a84c] text-[#1a3d2b]"
-                  : "bg-white/5 text-white/50 hover:bg-white/10"
+                  ? "bg-[#0a0f14] text-white"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
               }`}
             >
               {f.label}
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  filter === f.id ? "bg-[#1a3d2b]/20" : "bg-white/10"
+                  filter === f.id ? "bg-white/20" : "bg-white"
                 }`}
               >
                 {count}
@@ -225,33 +215,28 @@ export default function AdminActivityFeed() {
         })}
       </div>
 
-      {/* Loading / empty / list */}
+      {/* List */}
       {loading ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-16 bg-white/5 border border-white/10 rounded-2xl animate-pulse"
-            />
+            <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 bg-white/5 rounded-3xl border-2 border-dashed border-white/10">
-          <Activity className="mx-auto text-white/20 mb-4" size={40} />
-          <p className="text-white/30 font-black uppercase tracking-widest text-xs">
-            No activity yet
-          </p>
+        <div className="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
+          <Activity className="mx-auto text-slate-300 mb-3" size={32} />
+          <p className="text-sm font-medium text-slate-500">No activity yet</p>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-6">
           {grouped.map((group) => (
             <div key={group.label}>
-              <div className="flex items-center gap-3 mb-4">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">
+              <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
                   {group.label}
                 </h3>
-                <div className="flex-1 h-px bg-white/5" />
-                <span className="text-[10px] text-white/30">{group.items.length} events</span>
+                <div className="flex-1 h-px bg-slate-200" />
+                <span className="text-[10px] text-slate-400">{group.items.length} events</span>
               </div>
 
               <div className="space-y-2">
@@ -261,12 +246,12 @@ export default function AdminActivityFeed() {
                   return (
                     <div
                       key={e.id}
-                      className="group flex items-start gap-4 p-4 bg-white/[0.03] hover:bg-white/[0.07] border border-white/10 rounded-2xl transition"
+                      className="flex items-start gap-3 p-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition"
                     >
                       <div
-                        className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${tm.bg} ${tm.color}`}
+                        className={`w-9 h-9 rounded-lg border flex items-center justify-center shrink-0 ${tm.bg} ${tm.color}`}
                       >
-                        <Icon size={18} />
+                        <Icon size={16} />
                       </div>
 
                       <div className="flex-1 min-w-0">
@@ -274,17 +259,17 @@ export default function AdminActivityFeed() {
                           <span className={`text-[10px] font-black uppercase tracking-widest ${tm.color}`}>
                             {tm.label}
                           </span>
-                          <span className="text-[10px] text-white/30">·</span>
-                          <span className="text-[10px] text-white/40">{timeAgo(e.at)}</span>
+                          <span className="text-[10px] text-slate-300">·</span>
+                          <span className="text-[10px] text-slate-400">{timeAgo(e.at)}</span>
                         </div>
-                        <p className="text-white font-bold truncate">{e.title}</p>
+                        <p className="text-slate-900 font-bold text-sm truncate">{e.title}</p>
                         {e.subtitle && (
-                          <p className="text-xs text-white/50 truncate mt-0.5">{e.subtitle}</p>
+                          <p className="text-xs text-slate-500 truncate mt-0.5">{e.subtitle}</p>
                         )}
                       </div>
 
                       <div className="text-right shrink-0">
-                        <p className="text-[10px] text-white/30 whitespace-nowrap">
+                        <p className="text-[10px] text-slate-400 whitespace-nowrap">
                           {new Date(e.at).toLocaleTimeString(undefined, {
                             hour: "2-digit",
                             minute: "2-digit",
@@ -294,12 +279,12 @@ export default function AdminActivityFeed() {
                           <span
                             className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
                               e.meta.status === "confirmed"
-                                ? "bg-emerald-500/20 text-emerald-400"
+                                ? "bg-emerald-100 text-emerald-700"
                                 : e.meta.status === "cancelled"
-                                ? "bg-red-500/20 text-red-400"
+                                ? "bg-red-100 text-red-700"
                                 : e.meta.status === "contacted"
-                                ? "bg-amber-500/20 text-amber-400"
-                                : "bg-blue-500/20 text-blue-400"
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-blue-100 text-blue-700"
                             }`}
                           >
                             {e.meta.status}
