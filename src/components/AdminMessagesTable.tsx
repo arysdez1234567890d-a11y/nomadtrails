@@ -41,7 +41,7 @@ export default function AdminMessagesTable() {
   }
 
   async function remove(m: Msg) {
-    if (!confirm(`Delete message from ${m.email}?`)) return;
+    if (!confirm(`Удалить сообщение от ${m.email}?`)) return;
     await fetch(`/api/admin/messages?id=${m.id}`, { method: "DELETE" });
     setItems((prev) => prev.filter((x) => x.id !== m.id));
     if (openId === m.id) setOpenId(null);
@@ -65,9 +65,9 @@ export default function AdminMessagesTable() {
     <div className="p-6 lg:p-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-black font-playfair text-slate-900">Contact Messages</h2>
+          <h2 className="text-xl font-black font-playfair text-slate-900">Контактные сообщения</h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            {items.length} total · {unreadCount} unread
+            Всего {items.length} · {unreadCount} непрочитано
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export default function AdminMessagesTable() {
                 filter === "all" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
               }`}
             >
-              All
+              Все
             </button>
             <button
               onClick={() => setFilter("unread")}
@@ -87,7 +87,7 @@ export default function AdminMessagesTable() {
                 filter === "unread" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"
               }`}
             >
-              Unread {unreadCount > 0 && `(${unreadCount})`}
+              Непрочитанные {unreadCount > 0 && `(${unreadCount})`}
             </button>
           </div>
 
@@ -97,7 +97,7 @@ export default function AdminMessagesTable() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
+              placeholder="Поиск..."
               className="w-full pl-8 pr-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#c9a84c] focus:outline-none"
             />
           </div>
@@ -114,7 +114,7 @@ export default function AdminMessagesTable() {
         <div className="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
           <Inbox className="mx-auto text-slate-300 mb-3" size={32} />
           <p className="text-sm font-medium text-slate-500">
-            {items.length === 0 ? "No messages yet" : "No matches"}
+            {items.length === 0 ? "Пока нет сообщений" : "Ничего не найдено"}
           </p>
         </div>
       ) : (
@@ -168,12 +168,12 @@ export default function AdminMessagesTable() {
                   <div className="bg-slate-50 border-t border-slate-200 p-5 space-y-3">
                     {m.subject && (
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Subject</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Тема</p>
                         <p className="text-slate-900">{m.subject}</p>
                       </div>
                     )}
                     <div>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Message</p>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Сообщение</p>
                       <p className="text-slate-700 whitespace-pre-wrap leading-relaxed text-sm">{m.message}</p>
                     </div>
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
@@ -181,20 +181,20 @@ export default function AdminMessagesTable() {
                         href={`mailto:${m.email}?subject=Re: ${encodeURIComponent(m.subject || "")}`}
                         className="px-3 py-2 bg-[#c9a84c] text-[#0a0f14] rounded-lg text-xs font-bold flex items-center gap-2 hover:scale-105 transition"
                       >
-                        <Send size={13} /> Reply via email
+                        <Send size={13} /> Ответить
                       </a>
                       <button
                         onClick={() => markRead(m, !m.is_read)}
                         className="px-3 py-2 bg-white text-slate-700 border border-slate-200 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-slate-100 transition"
                       >
                         {m.is_read ? <Mail size={13} /> : <MailOpen size={13} />}
-                        Mark {m.is_read ? "unread" : "read"}
+                        {m.is_read ? "Сделать непрочитанным" : "Прочитано"}
                       </button>
                       <button
                         onClick={() => remove(m)}
                         className="px-3 py-2 bg-white text-red-600 border border-slate-200 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-red-500 hover:text-white hover:border-red-500 transition"
                       >
-                        <Trash2 size={13} /> Delete
+                        <Trash2 size={13} /> Удалить
                       </button>
                     </div>
                   </div>

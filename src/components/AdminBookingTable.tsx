@@ -119,9 +119,9 @@ export default function AdminBookingTable({
     <div className="p-6 lg:p-8">
       {/* Heading */}
       <div className="mb-6">
-        <h2 className="text-xl font-black font-playfair text-slate-900">Bookings</h2>
+        <h2 className="text-xl font-black font-playfair text-slate-900">Бронирования</h2>
         <p className="text-sm text-slate-500 mt-0.5">
-          {filtered.length} of {bookings.length} bookings shown
+          Показано {filtered.length} из {bookings.length}
         </p>
       </div>
 
@@ -133,7 +133,7 @@ export default function AdminBookingTable({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search name, email, phone, item..."
+            placeholder="Поиск по имени, email, телефону..."
             className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#c9a84c] focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/20 transition"
           />
         </div>
@@ -143,21 +143,21 @@ export default function AdminBookingTable({
             value={statusFilter}
             onChange={setStatusFilter}
             options={[
-              { value: "all", label: "All status" },
-              { value: "new", label: "New" },
-              { value: "contacted", label: "Contacted" },
-              { value: "confirmed", label: "Confirmed" },
-              { value: "cancelled", label: "Cancelled" },
+              { value: "all", label: "Все статусы" },
+              { value: "new", label: "Новые" },
+              { value: "contacted", label: "В обработке" },
+              { value: "confirmed", label: "Подтверждённые" },
+              { value: "cancelled", label: "Отменённые" },
             ]}
           />
           <SelectPill
             value={typeFilter}
             onChange={setTypeFilter}
             options={[
-              { value: "all", label: "All types" },
-              { value: "tour", label: "Tours" },
-              { value: "hotel", label: "Hotels" },
-              { value: "transport", label: "Transport" },
+              { value: "all", label: "Все типы" },
+              { value: "tour", label: "Туры" },
+              { value: "hotel", label: "Отели" },
+              { value: "transport", label: "Транспорт" },
             ]}
           />
           <button
@@ -165,14 +165,14 @@ export default function AdminBookingTable({
             className="px-3 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-2 hover:bg-slate-50 transition"
           >
             <ArrowUpDown size={13} />
-            {sortDesc ? "Newest" : "Oldest"}
+            {sortDesc ? "Сначала новые" : "Сначала старые"}
           </button>
           <button
             onClick={exportCSV}
             className="px-3 py-2.5 rounded-lg bg-[#0a0f14] text-white text-xs font-bold flex items-center gap-2 hover:bg-[#1a3d2b] transition"
           >
             <Download size={13} />
-            Export CSV
+            Экспорт CSV
           </button>
         </div>
       </div>
@@ -181,7 +181,7 @@ export default function AdminBookingTable({
       {filtered.length === 0 ? (
         <div className="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
           <Inbox className="mx-auto text-slate-300 mb-3" size={32} />
-          <p className="text-sm font-medium text-slate-500">No bookings match your filters</p>
+          <p className="text-sm font-medium text-slate-500">Бронирований не найдено</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -209,12 +209,12 @@ export default function AdminBookingTable({
                     </div>
 
                     <div className="hidden md:block min-w-0 max-w-xs flex-1">
-                      <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Item</p>
+                      <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Услуга</p>
                       <p className="text-slate-700 font-bold text-sm truncate">{title}</p>
                     </div>
 
                     <div className="hidden md:block">
-                      <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Date</p>
+                      <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Дата</p>
                       <p className="text-slate-700 font-bold text-sm whitespace-nowrap">
                         {b.preferred_date ? new Date(b.preferred_date).toLocaleDateString() : "—"}
                       </p>
@@ -222,7 +222,7 @@ export default function AdminBookingTable({
 
                     {b.price && (
                       <div className="hidden lg:block text-right">
-                        <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Total</p>
+                        <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase mb-0.5">Сумма</p>
                         <p className="text-[#c9a84c] font-bold tabular-nums text-sm">
                           ${Math.round(Number(b.price) * (b.guests || 1))}
                         </p>
@@ -241,10 +241,10 @@ export default function AdminBookingTable({
                         <CopyChip icon={Phone} label={b.phone} onClick={() => copyToClipboard(b.phone!)} copied={copied === b.phone} />
                       )}
                       <a
-                        href={`mailto:${b.email}?subject=Re: Booking #${b.id}`}
+                        href={`mailto:${b.email}?subject=Re: Бронирование #${b.id}`}
                         className="px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 flex items-center gap-2 transition"
                       >
-                        <Mail size={12} /> Email
+                        <Mail size={12} /> Написать
                       </a>
                       {b.phone && (
                         <a
@@ -259,16 +259,16 @@ export default function AdminBookingTable({
 
                     {b.special_requests && (
                       <div>
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Special requests</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">Особые пожелания</p>
                         <p className="text-slate-700 text-sm leading-relaxed">{b.special_requests}</p>
                       </div>
                     )}
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                      <Detail label="Item" value={title} />
-                      <Detail label="Date" value={b.preferred_date ? new Date(b.preferred_date).toLocaleDateString() : "—"} />
-                      <Detail label="Guests" value={String(b.guests)} />
-                      <Detail label="Created" value={new Date(b.created_at).toLocaleString()} />
+                      <Detail label="Услуга" value={title} />
+                      <Detail label="Дата" value={b.preferred_date ? new Date(b.preferred_date).toLocaleDateString("ru-RU") : "—"} />
+                      <Detail label="Гостей" value={String(b.guests)} />
+                      <Detail label="Создано" value={new Date(b.created_at).toLocaleString("ru-RU")} />
                     </div>
 
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-200">
@@ -277,21 +277,21 @@ export default function AdminBookingTable({
                         disabled={loadingId === b.id || b.status === "contacted"}
                         className="px-3 py-2 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold flex items-center gap-2 hover:bg-amber-500 hover:text-white transition disabled:opacity-30"
                       >
-                        <Clock size={13} /> Mark contacted
+                        <Clock size={13} /> В обработку
                       </button>
                       <button
                         onClick={() => updateStatus(b.id, "confirmed")}
                         disabled={loadingId === b.id || b.status === "confirmed"}
                         className="px-3 py-2 rounded-lg bg-[#c9a84c] text-[#0a0f14] text-xs font-bold flex items-center gap-2 hover:scale-105 transition disabled:opacity-30"
                       >
-                        <CheckCircle size={13} /> {translations.action_confirm}
+                        <CheckCircle size={13} /> Подтвердить
                       </button>
                       <button
                         onClick={() => updateStatus(b.id, "cancelled")}
                         disabled={loadingId === b.id || b.status === "cancelled"}
                         className="px-3 py-2 rounded-lg bg-white text-red-600 border border-slate-200 text-xs font-bold flex items-center gap-2 hover:bg-red-500 hover:text-white hover:border-red-500 transition disabled:opacity-30"
                       >
-                        <XCircle size={13} /> {translations.action_cancel}
+                        <XCircle size={13} /> Отменить
                       </button>
                     </div>
                   </div>
@@ -344,7 +344,7 @@ function CopyChip({ icon: Icon, label, onClick, copied }: { icon: any; label: st
       <Icon size={12} />
       <span className="truncate max-w-[200px]">{label}</span>
       <Copy size={11} className={copied ? "text-emerald-600" : ""} />
-      {copied && <span className="text-emerald-600 text-[10px]">copied!</span>}
+      {copied && <span className="text-emerald-600 text-[10px]">скопировано!</span>}
     </button>
   );
 }

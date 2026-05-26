@@ -28,11 +28,11 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const menuItems = [
-    { label: "Dashboard", icon: LayoutDashboard, href: `/${locale}/admin` },
-    { label: "Bookings", icon: Calendar, href: `/${locale}/admin/bookings` },
-    { label: "Tours", icon: Map, href: `/${locale}/admin/tours` },
-    { label: "Users", icon: Users, href: `/${locale}/admin/users` },
-    { label: "Messages", icon: Mail, href: `/${locale}/admin/messages` },
+    { label: "Главная", icon: LayoutDashboard, href: `/${locale}/admin` },
+    { label: "Бронирования", icon: Calendar, href: `/${locale}/admin/bookings` },
+    { label: "Туры", icon: Map, href: `/${locale}/admin/tours` },
+    { label: "Пользователи", icon: Users, href: `/${locale}/admin/users` },
+    { label: "Сообщения", icon: Mail, href: `/${locale}/admin/messages` },
   ];
 
   async function handleLogout() {
@@ -78,7 +78,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         {/* Nav */}
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-3 mb-3 mt-2">
-            Workspace
+            Рабочая область
           </p>
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
@@ -113,14 +113,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:bg-white/5 hover:text-white transition-all"
           >
             <ExternalLink size={16} />
-            <span>View Website</span>
+            <span>Открыть сайт</span>
           </Link>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition-all"
           >
             <LogOut size={16} />
-            <span>Sign out</span>
+            <span>Выйти</span>
           </button>
         </div>
       </aside>
@@ -138,9 +138,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <div>
-                <h1 className="text-base font-bold text-slate-900">Admin Dashboard</h1>
+                <h1 className="text-base font-bold text-slate-900">Панель администратора</h1>
                 <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold hidden sm:block">
-                  Management Center
+                  Центр управления
                 </p>
               </div>
             </div>
@@ -172,10 +172,10 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   )}
                   <div className="hidden sm:block text-left">
                     <p className="text-xs font-bold text-slate-900 leading-tight">
-                      {session?.user?.name || "Admin"}
+                      {session?.user?.name || "Админ"}
                     </p>
                     <p className="text-[10px] text-slate-500 leading-tight">
-                      {(session?.user as any)?.role === "admin" ? "Administrator" : "User"}
+                      {(session?.user as any)?.role === "admin" ? "Администратор" : "Пользователь"}
                     </p>
                   </div>
                   <ChevronDown
@@ -205,20 +205,20 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50"
                         >
-                          <Home size={14} /> Profile page
+                          <Home size={14} /> Мой профиль
                         </Link>
                         <Link
                           href={`/${locale}`}
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50"
                         >
-                          <ExternalLink size={14} /> View website
+                          <ExternalLink size={14} /> Открыть сайт
                         </Link>
                         <button
                           onClick={handleLogout}
                           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50"
                         >
-                          <LogOut size={14} /> Sign out
+                          <LogOut size={14} /> Выйти
                         </button>
                       </div>
                     </div>

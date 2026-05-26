@@ -33,45 +33,45 @@ const TYPE_META: Record<string, { icon: any; color: string; bg: string; label: s
     icon: Calendar,
     color: "text-blue-600",
     bg: "bg-blue-50 border-blue-200",
-    label: "New booking",
+    label: "Новое бронирование",
   },
   booking_confirmed: {
     icon: CheckCircle,
     color: "text-emerald-600",
     bg: "bg-emerald-50 border-emerald-200",
-    label: "Booking confirmed",
+    label: "Подтверждено",
   },
   booking_cancelled: {
     icon: XCircle,
     color: "text-red-600",
     bg: "bg-red-50 border-red-200",
-    label: "Booking cancelled",
+    label: "Отменено",
   },
   booking_contacted: {
     icon: Clock,
     color: "text-amber-600",
     bg: "bg-amber-50 border-amber-200",
-    label: "Marked contacted",
+    label: "В обработке",
   },
   user_signup: {
     icon: UserPlus,
     color: "text-violet-600",
     bg: "bg-violet-50 border-violet-200",
-    label: "New user",
+    label: "Новый пользователь",
   },
   message_new: {
     icon: Mail,
     color: "text-pink-600",
     bg: "bg-pink-50 border-pink-200",
-    label: "New message",
+    label: "Новое сообщение",
   },
 };
 
 const FILTERS = [
-  { id: "all", label: "All activity" },
-  { id: "bookings", label: "Bookings", types: ["booking_new", "booking_confirmed", "booking_cancelled", "booking_contacted"] },
-  { id: "users", label: "Users", types: ["user_signup"] },
-  { id: "messages", label: "Messages", types: ["message_new"] },
+  { id: "all", label: "Все события" },
+  { id: "bookings", label: "Бронирования", types: ["booking_new", "booking_confirmed", "booking_cancelled", "booking_contacted"] },
+  { id: "users", label: "Пользователи", types: ["user_signup"] },
+  { id: "messages", label: "Сообщения", types: ["message_new"] },
 ] as const;
 
 export default function AdminActivityFeed() {
@@ -121,9 +121,9 @@ export default function AdminActivityFeed() {
       const d = new Date(e.at);
       const ds = d.toDateString();
       let label: string;
-      if (ds === todayStr) label = "Today";
-      else if (ds === yesterdayStr) label = "Yesterday";
-      else label = d.toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+      if (ds === todayStr) label = "Сегодня";
+      else if (ds === yesterdayStr) label = "Вчера";
+      else label = d.toLocaleDateString("ru-RU", { weekday: "long", month: "short", day: "numeric" });
 
       let group = groups.find((g) => g.label === label);
       if (!group) { group = { label, items: [] }; groups.push(group); }
@@ -135,14 +135,14 @@ export default function AdminActivityFeed() {
   function timeAgo(iso: string): string {
     const ms = Date.now() - new Date(iso).getTime();
     const s = Math.floor(ms / 1000);
-    if (s < 60) return "just now";
+    if (s < 60) return "только что";
     const m = Math.floor(s / 60);
-    if (m < 60) return `${m}m ago`;
+    if (m < 60) return `${m} мин назад`;
     const h = Math.floor(m / 60);
-    if (h < 24) return `${h}h ago`;
+    if (h < 24) return `${h} ч назад`;
     const d = Math.floor(h / 24);
-    if (d < 7) return `${d}d ago`;
-    return new Date(iso).toLocaleDateString();
+    if (d < 7) return `${d} дн назад`;
+    return new Date(iso).toLocaleDateString("ru-RU");
   }
 
   return (
@@ -152,10 +152,10 @@ export default function AdminActivityFeed() {
         <div>
           <h2 className="text-xl font-black font-playfair text-slate-900 flex items-center gap-2.5">
             <Activity className="text-[#c9a84c]" size={20} />
-            Activity Feed
+            Лента событий
           </h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            Live · {counts.total} event{counts.total === 1 ? "" : "s"}
+            В реальном времени · {counts.total} событий
           </p>
         </div>
 
@@ -167,7 +167,7 @@ export default function AdminActivityFeed() {
               onChange={(e) => setAutoRefresh(e.target.checked)}
               className="accent-[#c9a84c]"
             />
-            Auto-refresh
+            Автообновление
           </label>
           <button
             onClick={load}
@@ -175,7 +175,7 @@ export default function AdminActivityFeed() {
             className="px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-700 text-xs font-bold flex items-center gap-2 hover:bg-slate-50 transition disabled:opacity-50"
           >
             <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} />
-            Refresh
+            Обновить
           </button>
         </div>
       </div>
@@ -225,7 +225,7 @@ export default function AdminActivityFeed() {
       ) : filtered.length === 0 ? (
         <div className="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
           <Activity className="mx-auto text-slate-300 mb-3" size={32} />
-          <p className="text-sm font-medium text-slate-500">No activity yet</p>
+          <p className="text-sm font-medium text-slate-500">Пока нет событий</p>
         </div>
       ) : (
         <div className="space-y-6">
@@ -236,7 +236,7 @@ export default function AdminActivityFeed() {
                   {group.label}
                 </h3>
                 <div className="flex-1 h-px bg-slate-200" />
-                <span className="text-[10px] text-slate-400">{group.items.length} events</span>
+                <span className="text-[10px] text-slate-400">{group.items.length} событий</span>
               </div>
 
               <div className="space-y-2">

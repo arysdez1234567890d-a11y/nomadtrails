@@ -83,11 +83,11 @@ export default async function AdminDashboard({
   };
 
   const translations = {
-    tab_bookings: t("tab_bookings"),
-    tab_tours: t("tab_tours"),
-    tab_hotels: t("tab_hotels"),
-    tab_users: "Users",
-    tab_messages: "Messages",
+    tab_bookings: "Бронирования",
+    tab_tours: "Туры",
+    tab_hotels: "Отели",
+    tab_users: "Пользователи",
+    tab_messages: "Сообщения",
     table_id: t("table_id"),
     table_client: t("table_client"),
     table_item: t("table_item"),
@@ -116,17 +116,17 @@ export default async function AdminDashboard({
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-700 mb-1">
-            Overview
+            Обзор
           </p>
           <h2 className="text-3xl font-black font-playfair text-slate-900">
-            Welcome back, {session.user.name?.split(" ")[0] ?? "Admin"}
+            С возвращением, {session.user.name?.split(" ")[0] ?? "Админ"}
           </h2>
           <p className="text-sm text-slate-500 mt-1">
-            Here's what's happening with NomadTrails today
+            Что происходит в NomadTrails сегодня
           </p>
         </div>
         <div className="text-xs text-slate-400 font-medium">
-          {new Date().toLocaleDateString(undefined, {
+          {new Date().toLocaleDateString("ru-RU", {
             weekday: "long",
             year: "numeric",
             month: "long",
@@ -143,19 +143,19 @@ export default async function AdminDashboard({
             <div className="flex items-center gap-2 mb-2">
               <DollarSign size={14} className="text-[#c9a84c]" />
               <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#c9a84c]">
-                Total Revenue
+                Общий доход
               </span>
             </div>
             <p className="text-5xl font-black tabular-nums mb-1">
               ${stats.revenue.toLocaleString()}
             </p>
             <p className="text-sm text-white/50">
-              From {stats.confirmed} confirmed booking{stats.confirmed === 1 ? "" : "s"}
+              По {stats.confirmed} подтверждённым бронированиям
             </p>
             <div className="grid grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/10">
-              <MiniStat label="Total" value={stats.total} />
-              <MiniStat label="New" value={stats.new} highlight={stats.new > 0} />
-              <MiniStat label="Confirmed" value={stats.confirmed} />
+              <MiniStat label="Всего" value={stats.total} />
+              <MiniStat label="Новые" value={stats.new} highlight={stats.new > 0} />
+              <MiniStat label="Подтверждённые" value={stats.confirmed} />
             </div>
           </div>
         </div>
@@ -163,17 +163,17 @@ export default async function AdminDashboard({
         <div className="grid grid-cols-2 lg:grid-cols-1 gap-4">
           <StatCard
             icon={UsersIcon}
-            label="Registered Users"
+            label="Пользователи"
             value={stats.users}
             color="bg-violet-100 text-violet-600"
-            trend={stats.users > 0 ? `${stats.users} total` : "No users yet"}
+            trend={stats.users > 0 ? `${stats.users} зарегистрировано` : "Никого нет"}
           />
           <StatCard
             icon={Mail}
-            label="Unread Messages"
+            label="Непрочитанные"
             value={stats.unread_messages}
             color="bg-pink-100 text-pink-600"
-            trend={stats.unread_messages > 0 ? "Needs attention" : "All caught up"}
+            trend={stats.unread_messages > 0 ? "Требует внимания" : "Всё прочитано"}
             urgent={stats.unread_messages > 0}
           />
         </div>
@@ -183,14 +183,14 @@ export default async function AdminDashboard({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           icon={Calendar}
-          label="Bookings"
+          label="Бронирования"
           value={stats.total}
           color="text-blue-600"
           bg="bg-blue-50"
         />
         <MetricCard
           icon={Clock}
-          label="New requests"
+          label="Новые заявки"
           value={stats.new}
           color="text-orange-600"
           bg="bg-orange-50"
@@ -198,14 +198,14 @@ export default async function AdminDashboard({
         />
         <MetricCard
           icon={CheckCircle2}
-          label="Confirmed"
+          label="Подтверждено"
           value={stats.confirmed}
           color="text-emerald-600"
           bg="bg-emerald-50"
         />
         <MetricCard
           icon={TrendingUp}
-          label="Tours · Hotels"
+          label="Туры · Отели"
           value={`${stats.tours} · ${stats.hotels}`}
           color="text-slate-600"
           bg="bg-slate-100"

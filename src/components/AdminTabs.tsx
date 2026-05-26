@@ -59,7 +59,7 @@ export default function AdminTabs({
   }
 
   const tabs: { id: Tab; icon: any; label: string }[] = [
-    { id: "activity", icon: Activity, label: "Activity" },
+    { id: "activity", icon: Activity, label: "Активность" },
     { id: "bookings", icon: Calendar, label: translations.tab_bookings },
     { id: "tours", icon: Map, label: translations.tab_tours },
     { id: "hotels", icon: Hotel, label: translations.tab_hotels },
@@ -137,7 +137,7 @@ function CrudPanel({
         <div>
           <h2 className="text-xl font-black font-playfair text-slate-900">{title}</h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            Manage your {title.toLowerCase()} catalog
+            Управление каталогом
           </p>
         </div>
         {activeTab === "tours" && (

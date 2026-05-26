@@ -58,7 +58,7 @@ export default function AdminUserTable() {
   }
 
   async function deleteUser(u: User) {
-    if (!confirm(`Delete user ${u.email}? This cannot be undone.`)) return;
+    if (!confirm(`Удалить пользователя ${u.email}? Это действие необратимо.`)) return;
     setWorking(u.id);
     try {
       const res = await fetch(`/api/admin/users?id=${u.id}`, { method: "DELETE" });
@@ -79,9 +79,9 @@ export default function AdminUserTable() {
     <div className="p-6 lg:p-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-xl font-black font-playfair text-slate-900">Registered Users</h2>
+          <h2 className="text-xl font-black font-playfair text-slate-900">Зарегистрированные пользователи</h2>
           <p className="text-sm text-slate-500 mt-0.5">
-            {users.length} total · {totalAdmins} admin{totalAdmins !== 1 ? "s" : ""}
+            Всего {users.length} · {totalAdmins} админ{totalAdmins === 1 ? "" : totalAdmins < 5 ? "а" : "ов"}
           </p>
         </div>
 
@@ -91,7 +91,7 @@ export default function AdminUserTable() {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or email..."
+            placeholder="Поиск по имени или email..."
             className="w-full pl-10 pr-3 py-2.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-sm placeholder:text-slate-400 focus:border-[#c9a84c] focus:outline-none focus:ring-2 focus:ring-[#c9a84c]/20 transition"
           />
         </div>
@@ -107,7 +107,7 @@ export default function AdminUserTable() {
         <div className="text-center py-16 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200">
           <UsersIcon className="mx-auto text-slate-300 mb-3" size={32} />
           <p className="text-sm font-medium text-slate-500">
-            {users.length === 0 ? "No users yet" : "No matches found"}
+            {users.length === 0 ? "Пока нет пользователей" : "Ничего не найдено"}
           </p>
         </div>
       ) : (
@@ -149,15 +149,15 @@ export default function AdminUserTable() {
 
               <div className="flex items-center gap-6 text-xs">
                 <div>
-                  <p className="text-[9px] uppercase tracking-widest text-slate-400 mb-0.5">Bookings</p>
+                  <p className="text-[9px] uppercase tracking-widest text-slate-400 mb-0.5">Бронирований</p>
                   <p className="text-slate-900 font-bold">{u.bookings_count}</p>
                 </div>
                 <div>
                   <p className="text-[9px] uppercase tracking-widest text-slate-400 mb-0.5 flex items-center gap-1">
-                    <Calendar size={10} /> Joined
+                    <Calendar size={10} /> Регистрация
                   </p>
                   <p className="text-slate-900 font-bold">
-                    {new Date(u.created_at).toLocaleDateString()}
+                    {new Date(u.created_at).toLocaleDateString("ru-RU")}
                   </p>
                 </div>
               </div>
@@ -166,7 +166,7 @@ export default function AdminUserTable() {
                 <button
                   onClick={() => toggleRole(u)}
                   disabled={working === u.id}
-                  title={u.role === "admin" ? "Remove admin" : "Make admin"}
+                  title={u.role === "admin" ? "Убрать админа" : "Сделать админом"}
                   className={`px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition border ${
                     u.role === "admin"
                       ? "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
@@ -174,13 +174,13 @@ export default function AdminUserTable() {
                   } disabled:opacity-50`}
                 >
                   {u.role === "admin" ? <ShieldOff size={13} /> : <ShieldCheck size={13} />}
-                  <span className="hidden sm:inline">{u.role === "admin" ? "Demote" : "Promote"}</span>
+                  <span className="hidden sm:inline">{u.role === "admin" ? "Понизить" : "Повысить"}</span>
                 </button>
                 <button
                   onClick={() => deleteUser(u)}
                   disabled={working === u.id}
                   className="px-3 py-2 rounded-lg text-xs bg-white text-red-600 hover:bg-red-500 hover:text-white transition border border-slate-200 disabled:opacity-50"
-                  title="Delete user"
+                  title="Удалить пользователя"
                 >
                   <Trash2 size={13} />
                 </button>
