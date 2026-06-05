@@ -115,6 +115,7 @@
     "form_tour": "Select Tour",
     "form_date": "Preferred Date",
     "form_guests": "Number of Guests",
+    "guests": "guests",
     "form_message": "Special Requests",
     "form_submit": "Send Request",
     "form_success": "Thank you! We'll contact you within 24 hours.",
