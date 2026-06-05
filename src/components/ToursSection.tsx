@@ -814,6 +814,28 @@ function TourDetailsModal({
   translations: any;
 }) {
   const t = translations;
+
+  // Lock body scroll + ESC to close while modal is open
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    const prevPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    document.body.style.overflow = "hidden";
+    if (scrollbarWidth > 0) document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.body.style.paddingRight = prevPaddingRight;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, onClose]);
+
   if (!tour) return null;
 
   return (
@@ -826,6 +848,7 @@ function TourDetailsModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
+            data-lenis-prevent
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9998]"
           />
           {/* Modal Container */}
@@ -834,7 +857,10 @@ function TourDetailsModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.92, y: 30 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[min(720px,calc(100vw-2rem))] max-h-[calc(100vh-4rem)] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden"
+            data-lenis-prevent
+            role="dialog"
+            aria-modal="true"
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[9999] w-[min(720px,calc(100vw-2rem))] max-h-[calc(100dvh-2rem)] md:max-h-[calc(100vh-4rem)] bg-white rounded-[40px] shadow-2xl flex flex-col overflow-hidden overscroll-contain"
           >
             {/* Header image area */}
             <div className="relative h-64 md:h-80 w-full shrink-0 overflow-hidden">
@@ -865,7 +891,10 @@ function TourDetailsModal({
               </div>
             </div>
 
-            <div className="p-8 md:p-10 !pb-2 space-y-8 overflow-y-auto flex-1 custom-scrollbar">
+            <div
+              data-lenis-prevent
+              className="p-8 md:p-10 !pb-2 space-y-8 overflow-y-auto overscroll-contain flex-1 custom-scrollbar [-webkit-overflow-scrolling:touch] touch-pan-y"
+            >
               
               {/* Quick info badges row */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-5 rounded-3xl border border-gray-100">
