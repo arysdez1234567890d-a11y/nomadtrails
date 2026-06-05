@@ -50,6 +50,8 @@ export default function Navbar() {
 
   const currentLocale = pathname.split("/")[1] || "en";
   const currentLang = LOCALES.find((l) => l.code === currentLocale) || LOCALES[0];
+  const isHome = pathname === `/${currentLocale}` || pathname === `/${currentLocale}/` || pathname === "/";
+  const forceScrolled = scrolled || !isHome;
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 50);
@@ -75,7 +77,7 @@ export default function Navbar() {
   return (
     <header
       className={`fixed top-0 left-0 right-0 z-[1000] transition-all duration-500 ${
-        scrolled ? "bg-white/90 backdrop-blur-xl shadow-lg py-3" : "bg-transparent py-6"
+        forceScrolled ? "bg-white/90 backdrop-blur-xl shadow-lg py-3" : "bg-transparent py-6"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
@@ -90,15 +92,15 @@ export default function Navbar() {
             />
           </div>
           <div>
-            <span className={`font-playfair font-extrabold text-xl transition-colors ${scrolled ? "text-[#0d1117]" : "text-white"}`}>{tc("site_name")}</span>
-            <span className={`block text-[10px] font-bold uppercase tracking-[0.2em] transition-colors ${scrolled ? "text-[#40916c]" : "text-[#c9a84c]"}`}>{tc("site_tagline")}</span>
+            <span className={`font-playfair font-extrabold text-xl transition-colors ${forceScrolled ? "text-[#0d1117]" : "text-white"}`}>{tc("site_name")}</span>
+            <span className={`block text-[10px] font-bold uppercase tracking-[0.2em] transition-colors ${forceScrolled ? "text-[#40916c]" : "text-[#c9a84c]"}`}>{tc("site_tagline")}</span>
           </div>
         </Link>
 
         {/* Desktop Nav */}
         <nav className="hidden lg:flex items-center gap-8">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className={`text-sm font-bold tracking-wide transition-all hover:text-[#c9a84c] ${scrolled ? "text-gray-600" : "text-white/90"}`}>
+            <a key={link.href} href={link.href} className={`text-sm font-bold tracking-wide transition-all hover:text-[#c9a84c] ${forceScrolled ? "text-gray-600" : "text-white/90"}`}>
               {link.label}
             </a>
           ))}
@@ -106,7 +108,7 @@ export default function Navbar() {
           {/* User & Lang */}
           <div className="flex items-center gap-4 pl-4 border-l border-white/10">
             <div className="relative">
-              <button onClick={() => setLangOpen(!langOpen)} className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs transition-all ${scrolled ? "bg-gray-100 text-[#1a3d2b]" : "bg-white/10 text-white hover:bg-white/20"}`}>
+              <button onClick={() => setLangOpen(!langOpen)} className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs transition-all ${forceScrolled ? "bg-gray-100 text-[#1a3d2b]" : "bg-white/10 text-white hover:bg-white/20"}`}>
                 <Globe size={14} />
                 <span>{currentLang.flag} {currentLang.code.toUpperCase()}</span>
                 <ChevronDown size={12} className={`transition-transform duration-300 ${langOpen ? "rotate-180" : ""}`} />
@@ -129,7 +131,7 @@ export default function Navbar() {
               {session ? (
                 <button onClick={() => setUserMenuOpen(!userMenuOpen)} className="flex items-center transition-transform hover:scale-110">
                   {session.user?.image ? (
-                    <img src={session.user.image} alt="" className={`w-10 h-10 rounded-full border-2 ${scrolled ? "border-[#1a3d2b]" : "border-white"}`} />
+                    <img src={session.user.image} alt="" className={`w-10 h-10 rounded-full border-2 ${forceScrolled ? "border-[#1a3d2b]" : "border-white"}`} />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-[#c9a84c] text-white flex items-center justify-center font-bold">{session.user?.name?.[0]}</div>
                   )}
@@ -168,7 +170,7 @@ export default function Navbar() {
                 {session.user?.image ? <img src={session.user.image} alt="" /> : <div className="bg-[#c9a84c] text-white w-full h-full flex items-center justify-center font-bold">{session.user?.name?.[0]}</div>}
              </Link>
           )}
-          <button onClick={() => setMenuOpen(!menuOpen)} className={`p-2 transition-colors ${scrolled ? "text-[#1a3d2b]" : "text-white"}`}>
+          <button onClick={() => setMenuOpen(!menuOpen)} className={`p-2 transition-colors ${forceScrolled ? "text-[#1a3d2b]" : "text-white"}`}>
             {menuOpen ? <X size={28} /> : <Menu size={28} />}
           </button>
         </div>
