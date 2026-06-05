@@ -345,8 +345,7 @@ function HotelDetailsModal({
               </div>
             </div>
 
-            {/* Content Area */}
-            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 hide-scrollbar">
+            <div className="p-6 sm:p-8 !pb-2 space-y-6 overflow-y-auto flex-1 hide-scrollbar">
               
               {/* Description */}
               <div>
@@ -404,23 +403,23 @@ function HotelDetailsModal({
                 </div>
               </div>
 
-              {/* CTA Booking Row */}
-              <div className="flex items-center justify-between gap-6 pt-6 border-t border-gray-100 bg-white sticky bottom-0 z-10">
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("per_night")}</p>
-                  <p className="font-playfair text-2xl sm:text-3xl font-black text-[#1a3d2b]">${hotel.price}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    window.dispatchEvent(new CustomEvent("select-booking-item", { detail: t(`list.${hotel.key}.name`) }));
-                    onClose();
-                  }}
-                  className="btn-primary !py-3.5 !px-6 flex-1 sm:flex-initial"
-                >
-                  {t("book")}
-                </button>
-              </div>
+            </div>
 
+            {/* CTA Booking Row */}
+            <div className="flex items-center justify-between gap-6 p-6 sm:p-8 border-t border-gray-100 bg-white shrink-0 rounded-b-[40px] z-10">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("per_night")}</p>
+                <p className="font-playfair text-2xl sm:text-3xl font-black text-[#1a3d2b]">${hotel.price}</p>
+              </div>
+              <button
+                onClick={() => {
+                  window.dispatchEvent(new CustomEvent("select-booking-item", { detail: t(`list.${hotel.key}.name`) }));
+                  onClose();
+                }}
+                className="btn-primary !py-3.5 !px-6 flex-1 sm:flex-initial"
+              >
+                {t("book")}
+              </button>
             </div>
           </motion.div>
         </>

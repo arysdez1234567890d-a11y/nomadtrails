@@ -625,8 +625,7 @@ function TourDetailsModal({
               </div>
             </div>
 
-            {/* Content Area */}
-            <div className="p-8 md:p-10 space-y-8 overflow-y-auto flex-1 hide-scrollbar">
+            <div className="p-8 md:p-10 !pb-2 space-y-8 overflow-y-auto flex-1 hide-scrollbar">
               
               {/* Quick info badges row */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-5 rounded-3xl border border-gray-100">
@@ -725,23 +724,23 @@ function TourDetailsModal({
                 </div>
               </div>
 
-              {/* CTA Booking Row */}
-              <div className="flex items-center justify-between gap-6 pt-6 border-t border-gray-100 bg-white sticky bottom-0 z-10">
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("per_person")}</p>
-                  <p className="font-playfair text-3xl font-black text-[#1a3d2b]">${tour.price}</p>
-                </div>
-                <button
-                  onClick={() => {
-                    onBook();
-                    onClose();
-                  }}
-                  className="btn-primary !py-4 !px-8 flex-1 sm:flex-initial"
-                >
-                  {t("book_now")}
-                </button>
-              </div>
+            </div>
 
+            {/* CTA Booking Row */}
+            <div className="flex items-center justify-between gap-6 p-8 md:p-10 border-t border-gray-100 bg-white shrink-0 rounded-b-[40px] z-10">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{t("per_person")}</p>
+                <p className="font-playfair text-3xl font-black text-[#1a3d2b]">${tour.price}</p>
+              </div>
+              <button
+                onClick={() => {
+                  onBook();
+                  onClose();
+                }}
+                className="btn-primary !py-4 !px-8 flex-1 sm:flex-initial"
+              >
+                {t("book_now")}
+              </button>
             </div>
           </motion.div>
         </>
