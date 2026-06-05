@@ -6,6 +6,7 @@ import FeaturedDestinations from "@/components/FeaturedDestinations";
 import ToursSection from "@/components/ToursSection";
 import HotelsSection from "@/components/HotelsSection";
 import ContactSection from "@/components/ContactSection";
+import ReviewsSection from "@/components/ReviewsSection";
 import Footer from "@/components/Footer";
 import SmoothScrollProvider from "@/components/SmoothScrollProvider";
 
@@ -23,6 +24,7 @@ export default function HomePage() {
         <ToursSection />
         <HotelsSection />
         <TransportSection />
+        <ReviewsSection />
         <ContactSection />
       </main>
       <Footer />

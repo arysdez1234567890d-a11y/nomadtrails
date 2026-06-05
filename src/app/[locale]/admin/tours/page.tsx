@@ -3,12 +3,14 @@ import { useEffect, useState } from "react";
 import { Plus, Search, Edit2, Trash2, Map } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import EditCatalogModal from "@/components/EditCatalogModal";
 
 export default function ToursManager() {
   const { locale } = useParams() as { locale: string };
   const [tours, setTours] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [editingTour, setEditingTour] = useState<any | null>(null);
 
   useEffect(() => {
     fetchTours();
@@ -139,7 +141,8 @@ export default function ToursManager() {
                 </div>
                 <div className="flex gap-2 shrink-0">
                   <button
-                    className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 hover:bg-[#c9a84c] hover:text-white border border-slate-200 flex items-center justify-center transition"
+                    onClick={() => setEditingTour(t)}
+                    className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 hover:bg-[#c9a84c] hover:text-white border border-slate-200 flex items-center justify-center transition cursor-pointer"
                     title="Редактировать"
                   >
                     <Edit2 size={15} />
@@ -157,6 +160,17 @@ export default function ToursManager() {
           </div>
         )}
       </div>
+
+      <EditCatalogModal
+        item={editingTour}
+        open={editingTour !== null}
+        onClose={() => setEditingTour(null)}
+        activeTab="tours"
+        onSave={() => {
+          setEditingTour(null);
+          fetchTours();
+        }}
+      />
     </div>
   );
 }

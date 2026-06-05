@@ -10,11 +10,16 @@ import {
   Trash2,
   Edit,
   Activity,
+  X,
+  Check,
+  Loader2,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import AdminBookingTable from "./AdminBookingTable";
 import AdminUserTable from "./AdminUserTable";
 import AdminMessagesTable from "./AdminMessagesTable";
 import AdminActivityFeed from "./AdminActivityFeed";
+import EditCatalogModal from "./EditCatalogModal";
 
 type Tab = "activity" | "bookings" | "tours" | "hotels" | "users" | "messages";
 
@@ -26,6 +31,7 @@ export default function AdminTabs({
   const [activeTab, setActiveTab] = useState<Tab>("activity");
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [editingItem, setEditingItem] = useState<any | null>(null);
 
   useEffect(() => {
     if (activeTab === "tours" || activeTab === "hotels") {
@@ -75,7 +81,7 @@ export default function AdminTabs({
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-5 py-4 font-bold transition-all border-b-2 whitespace-nowrap text-xs uppercase tracking-[0.15em] ${
+            className={`flex items-center gap-2 px-5 py-4 font-bold transition-all border-b-2 whitespace-nowrap text-xs uppercase tracking-[0.15em] cursor-pointer ${
               activeTab === tab.id
                 ? "border-[#c9a84c] text-[#0a0f14] bg-white"
                 : "border-transparent text-slate-400 hover:text-slate-700 hover:bg-white"
@@ -114,10 +120,23 @@ export default function AdminTabs({
             locale={locale}
             translations={translations}
             onDelete={deleteItem}
+            onEdit={setEditingItem}
             activeTab={activeTab}
           />
         )}
       </div>
+
+      {/* Edit Item Modal */}
+      <EditCatalogModal
+        item={editingItem}
+        open={editingItem !== null}
+        onClose={() => setEditingItem(null)}
+        activeTab={activeTab}
+        onSave={() => {
+          setEditingItem(null);
+          fetchItems();
+        }}
+      />
     </div>
   );
 }
@@ -129,6 +148,7 @@ function CrudPanel({
   locale,
   translations,
   onDelete,
+  onEdit,
   activeTab,
 }: any) {
   return (
@@ -209,14 +229,15 @@ function CrudPanel({
 
               <div className="flex gap-2 shrink-0">
                 <button
-                  className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 hover:bg-[#c9a84c] hover:text-white border border-slate-200 flex items-center justify-center transition"
+                  onClick={() => onEdit(item)}
+                  className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 hover:bg-[#c9a84c] hover:text-white border border-slate-200 flex items-center justify-center transition cursor-pointer"
                   title="Edit"
                 >
                   <Edit size={15} />
                 </button>
                 <button
                   onClick={() => onDelete(item.id)}
-                  className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white border border-slate-200 flex items-center justify-center transition"
+                  className="w-9 h-9 rounded-lg bg-slate-100 text-slate-500 hover:bg-red-500 hover:text-white border border-slate-200 flex items-center justify-center transition cursor-pointer"
                   title="Delete"
                 >
                   <Trash2 size={15} />
@@ -229,3 +250,5 @@ function CrudPanel({
     </div>
   );
 }
+
+// EditCatalogModal is now imported from "./EditCatalogModal"

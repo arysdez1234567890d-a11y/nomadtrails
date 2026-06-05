@@ -48,3 +48,34 @@ export async function DELETE(req: Request) {
   await supabase.from('tours').delete().eq('id', id);
   return NextResponse.json({ success: true });
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const session = await auth();
+    if (!session || (session.user as any).role !== 'admin') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+    const data = await req.json();
+    const { id, ...updateData } = data;
+    if (!id) {
+      return NextResponse.json({ error: "Missing tour ID" }, { status: 400 });
+    }
+    const { error } = await supabase.from('tours').update({
+      slug: updateData.slug,
+      duration_days: Number(updateData.duration_days),
+      price_usd: Number(updateData.price_usd),
+      difficulty: updateData.difficulty,
+      image_url: updateData.image_url,
+      name_en: updateData.name_en,
+      name_ru: updateData.name_ru,
+      name_ky: updateData.name_ky,
+      active: updateData.active,
+    }).eq('id', id);
+
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("[tours PATCH] Error:", err?.message || err);
+    return NextResponse.json({ error: "DB Error" }, { status: 500 });
+  }
+}

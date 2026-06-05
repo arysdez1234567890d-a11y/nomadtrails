@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { Phone, MapPin, Send, MessageCircle, Check } from "lucide-react";
+import { Phone, MapPin, Send, MessageCircle, Check, Loader2, AlertCircle } from "lucide-react";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -13,6 +13,8 @@ export default function ContactSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const headRef = useRef<HTMLDivElement>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
 
   useEffect(() => {
@@ -22,10 +24,31 @@ export default function ContactSection() {
     }
   }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 5000);
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send message");
+      }
+
+      setSubmitted(true);
+      setForm({ name: "", email: "", subject: "", message: "" });
+      setTimeout(() => setSubmitted(false), 5000);
+    } catch (err: any) {
+      setError(err?.message || "Failed to send. Please check your connection.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -80,20 +103,37 @@ export default function ContactSection() {
                   ].map(({ key, label, type }) => (
                     <div key={key}>
                       <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#343a40", marginBottom: "0.4rem" }}>{label}</label>
-                      <input type={type} required className="input-field" value={form[key as keyof typeof form]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} />
+                      <input type={type} required className="input-field" value={form[key as keyof typeof form]} onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))} disabled={loading} />
                     </div>
                   ))}
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#343a40", marginBottom: "0.4rem" }}>{t("subject")}</label>
-                  <input type="text" className="input-field" value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} />
+                  <input type="text" className="input-field" value={form.subject} onChange={e => setForm(p => ({ ...p, subject: e.target.value }))} disabled={loading} />
                 </div>
                 <div>
                   <label style={{ display: "block", fontSize: "0.82rem", fontWeight: 600, color: "#343a40", marginBottom: "0.4rem" }}>{t("message")}</label>
-                  <textarea className="input-field" rows={5} required value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))} style={{ resize: "vertical" }} />
+                  <textarea className="input-field" rows={5} required value={form.message} onChange={e => setForm(p => ({ ...p, message: e.target.value }))} style={{ resize: "vertical" }} disabled={loading} />
                 </div>
-                <button type="submit" className="btn-primary" style={{ alignSelf: "flex-end", padding: "0.85rem 2.5rem" }}>
-                  <Send size={15} /> {t("send")}
+                
+                {error && (
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", color: "#c0392b", background: "#fdf2f2", border: "1px solid #fde2e2", borderRadius: 12, padding: "0.8rem 1rem", fontSize: "0.8rem", fontWeight: 600 }}>
+                    <AlertCircle size={16} />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <button type="submit" className="btn-primary" disabled={loading} style={{ alignSelf: "flex-end", padding: "0.85rem 2.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={15} />
+                      {t("send")}...
+                    </>
+                  ) : (
+                    <>
+                      <Send size={15} /> {t("send")}
+                    </>
+                  )}
                 </button>
               </form>
             )}

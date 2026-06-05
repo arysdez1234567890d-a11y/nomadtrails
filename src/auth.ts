@@ -103,20 +103,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
 
-    // jwt — re-fetch role from DB every cycle so admin promotions
-    // applied via the admin panel propagate without re-login.
+    // jwt — re-fetch role, name, and image from DB every cycle so updates propagate
     async jwt({ token, user }) {
       if (user?.email) token.email = user.email;
       if (token?.email) {
         try {
           const { data: rows } = await supabase
             .from("users")
-            .select("id, role")
+            .select("id, role, name, image")
             .eq("email", token.email as string)
             .limit(1);
           if (rows && rows.length > 0) {
             token.dbId = rows[0].id;
             token.role = rows[0].role;
+            token.name = rows[0].name;
+            token.image = rows[0].image;
           }
         } catch (e: any) {
           console.error("[auth jwt] DB lookup failed:", e?.message ?? e);
@@ -129,6 +130,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session?.user) {
         session.user.id = token?.dbId ?? null;
         session.user.role = token?.role ?? "user";
+        if (token?.name) session.user.name = token.name;
+        if (token?.image) session.user.image = token.image;
       }
       return session;
     },

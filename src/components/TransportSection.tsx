@@ -94,9 +94,11 @@ export default function TransportSection() {
                 <div>
                   <h4 className="font-playfair font-bold text-xl mb-2 text-[#1a3d2b]">{t(`${key}_title` as any)}</h4>
                   <p className="text-gray-500 text-sm leading-relaxed mb-4">{t(`${key}_desc` as any)}</p>
-                  <a href="#booking" className="inline-flex items-center gap-2 font-black text-[10px] uppercase tracking-[0.2em]" style={{ color }}>
+                  <button onClick={() => {
+                    window.dispatchEvent(new CustomEvent("select-booking-item", { detail: t(`${key}_title` as any) }));
+                  }} className="inline-flex items-center gap-2 font-black text-[10px] uppercase tracking-[0.2em] cursor-pointer border-none bg-none p-0 align-baseline" style={{ color }}>
                     {t("learn_more")} <ArrowRight size={14} />
-                  </a>
+                  </button>
                 </div>
               </div>
             ))}

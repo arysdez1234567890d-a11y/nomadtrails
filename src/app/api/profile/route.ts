@@ -8,8 +8,12 @@ export async function PATCH(req: Request) {
     if (!session || !session.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const { name, phone } = await req.json();
-    await supabase.from('users').update({ name, phone }).eq('email', session.user.email);
+    const { name, phone, image } = await req.json();
+    const updateData: any = { name, phone };
+    if (image !== undefined) {
+      updateData.image = image;
+    }
+    await supabase.from('users').update(updateData).eq('email', session.user.email);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error updating profile:", error);

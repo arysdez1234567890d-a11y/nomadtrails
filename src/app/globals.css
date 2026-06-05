@@ -50,6 +50,10 @@
     @apply inline-flex items-center justify-center bg-[#c9a84c] text-[#1a3d2b] font-bold py-4 px-10 rounded-full transition-all hover:bg-[#d4b96a] hover:scale-105 active:scale-95 shadow-lg shadow-[#c9a84c]/20 text-sm tracking-widest uppercase;
   }
 
+  .btn-secondary {
+    @apply inline-flex items-center justify-center bg-transparent text-[#1a3d2b] font-bold py-4 px-10 rounded-full border border-gray-200 transition-all hover:bg-gray-50 hover:border-gray-300 hover:scale-105 active:scale-95 text-sm tracking-widest uppercase cursor-pointer;
+  }
+
   .section-badge {
     @apply inline-block px-4 py-1.5 bg-[#c9a84c]/10 text-[#c9a84c] text-[11px] font-bold uppercase tracking-[0.2em] rounded-full mb-6;
   }

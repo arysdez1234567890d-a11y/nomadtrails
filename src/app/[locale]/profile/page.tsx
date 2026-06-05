@@ -83,6 +83,20 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
     }
   }
 
+  let userReviews: any[] = [];
+  if (userData.id) {
+    try {
+      const { data } = await supabase
+        .from("reviews")
+        .select("*")
+        .eq("user_id", userData.id)
+        .order("created_at", { ascending: false });
+      userReviews = data ?? [];
+    } catch (e: any) {
+      console.error("[profile] user reviews query failed:", e?.message ?? e);
+    }
+  }
+
   const translations = {
     my_bookings: t("my_bookings"),
     settings: t("settings"),
@@ -100,6 +114,14 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
     phone_number: t("phone_number"),
     save_changes: t("save_changes"),
     saved: t("saved"),
+    my_reviews: locale === "ru" ? "Мои отзывы" : (locale === "ky" ? "Менин пикирлерим" : "My Reviews"),
+    no_reviews: locale === "ru" ? "Вы еще не оставили отзывов." : (locale === "ky" ? "Сиз азырынча пикир калтыра элексиз." : "You have not left any reviews yet."),
+    delete_review: locale === "ru" ? "Удалить отзыв" : (locale === "ky" ? "Пикирди өчүрүү" : "Delete review"),
+    confirm_delete: locale === "ru" ? "Вы уверены, что хотите удалить этот отзыв?" : (locale === "ky" ? "Бул пикирди өчүрүүнү каалайсызбы?" : "Are you sure you want to delete this review?"),
+    my_favorites: locale === "ru" ? "Избранное" : (locale === "ky" ? "Тандалган" : "Favorites"),
+    no_favorites: locale === "ru" ? "У вас пока нет избранных туров или отелей." : (locale === "ky" ? "Сизде азырынча тандалган турлар же отелдер жок." : "You have no favorite tours or hotels yet."),
+    remove_favorite: locale === "ru" ? "Удалить" : (locale === "ky" ? "Өчүрүү" : "Remove"),
+    book: locale === "ru" ? "Забронировать" : (locale === "ky" ? "Брондоо" : "Book"),
   };
 
   return (
@@ -178,6 +200,7 @@ export default async function ProfilePage({ params }: { params: Promise<{ locale
 
               <ProfileTabs
                 bookings={bookings}
+                userReviews={userReviews}
                 userData={userData}
                 translations={translations}
                 locale={locale}

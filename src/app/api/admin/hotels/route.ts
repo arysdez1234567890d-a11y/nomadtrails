@@ -50,3 +50,36 @@ export async function DELETE(req: Request) {
   await supabase.from('hotels').delete().eq('id', id);
   return NextResponse.json({ success: true });
 }
+
+export async function PATCH(req: Request) {
+  try {
+    const session = await auth();
+    if (!session || (session.user as any).role !== 'admin') {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+    const data = await req.json();
+    const { id, ...updateData } = data;
+    if (!id) {
+      return NextResponse.json({ error: "Missing hotel ID" }, { status: 400 });
+    }
+    const { error } = await supabase.from('hotels').update({
+      slug: updateData.slug,
+      type: updateData.type,
+      price_per_night: Number(updateData.price_per_night),
+      image_url: updateData.image_url,
+      name_en: updateData.name_en,
+      name_ru: updateData.name_ru,
+      name_ky: updateData.name_ky,
+      location_en: updateData.location_en,
+      location_ru: updateData.location_ru,
+      location_ky: updateData.location_ky,
+      active: updateData.active,
+    }).eq('id', id);
+
+    if (error) throw error;
+    return NextResponse.json({ success: true });
+  } catch (err: any) {
+    console.error("[hotels PATCH] Error:", err?.message || err);
+    return NextResponse.json({ error: "DB Error" }, { status: 500 });
+  }
+}

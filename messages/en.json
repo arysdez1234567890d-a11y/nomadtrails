@@ -92,10 +92,23 @@
     "days": "days",
     "from": "From",
     "book_now": "Book Now",
+    "details": "More info",
     "difficulty": "Difficulty",
     "group_size": "Group Size",
     "includes": "Includes",
+    "overview": "Overview",
+    "highlights": "Highlights",
+    "itinerary": "Day-by-day Itinerary",
+    "day": "Day",
+    "not_included": "Not included",
+    "best_season": "Best season",
+    "rating": "Rating",
+    "reviews": "reviews",
+    "total_price": "Total",
+    "per_person": "per person",
+    "close": "Close",
     "form_title": "Request a Booking",
+    "form_subtitle": "Fill out the form and our manager will contact you within 24 hours",
     "form_name": "Full Name",
     "form_email": "Email Address",
     "form_phone": "Phone Number",
@@ -105,11 +118,112 @@
     "form_message": "Special Requests",
     "form_submit": "Send Request",
     "form_success": "Thank you! We'll contact you within 24 hours.",
+    "form_error": "Something went wrong. Please try again.",
+    "form_select_item": "Please select a service",
+    "form_phone_invalid": "Enter a valid phone number",
+    "form_email_invalid": "Enter a valid email",
+    "form_date_past": "Date cannot be in the past",
+    "form_price_estimate": "Estimated price",
+    "step_select": "Service",
+    "step_details": "Your details",
+    "step_confirm": "Confirmation",
     "list": {
-      "kelsuu_tashrabat": { "name": "Kel-Suu & Tash-Rabat Explorer", "difficulty": "Moderate", "includes": ["Guide", "Transport", "Yurt Stays", "Meals", "Permits"] },
-      "enilchek": { "name": "Enilchek Glacier Expedition", "difficulty": "Hard", "includes": ["Helicopter", "Guide", "Camp Equipment", "Meals", "Insurance"] },
-      "issyk_kul": { "name": "Issyk-Kul Discovery Loop", "difficulty": "Easy", "includes": ["Guide", "Transport", "Hotel", "Breakfast"] },
-      "nomadic": { "name": "Nomadic Life & Eagle Hunting", "difficulty": "Moderate", "includes": ["Guide", "Yurt Stays", "Eagle Show", "Meals", "Horse Riding"] }
+      "kelsuu_tashrabat": {
+        "name": "Kel-Suu & Tash-Rabat Explorer",
+        "difficulty": "Moderate",
+        "season": "June — September",
+        "overview": "A 7-day adventure through the most remote corners of Kyrgyzstan. Visit the turquoise Kel-Suu Lake hidden in mountains near the Chinese border and the medieval Tash-Rabat caravanserai — a true gem of the Great Silk Road.",
+        "highlights": [
+          "Turquoise Kel-Suu Lake at 3500m altitude",
+          "15th-century Tash-Rabat caravanserai",
+          "Horse rides across alpine pastures",
+          "Authentic yurt stays with nomads",
+          "Traditional nomadic cuisine"
+        ],
+        "itinerary": [
+          { "title": "Arrival in Bishkek", "desc": "Airport pickup, hotel check-in, welcome dinner and trip briefing." },
+          { "title": "Bishkek → Naryn", "desc": "Drive over Dolon Pass (3038m), mountain lunch, overnight at a guesthouse." },
+          { "title": "Naryn → Tash-Rabat", "desc": "Visit the 15th-century caravanserai, explore surroundings, sleep in yurts." },
+          { "title": "Tash-Rabat → Kel-Suu", "desc": "Off-road 4×4 drive, horseback ride to the lake, sunset photoshoot." },
+          { "title": "Kel-Suu Lake", "desc": "Full day at the lake, trekking, time with shepherds and nomadic traditions." },
+          { "title": "Return to Naryn", "desc": "Drive back, visit Koshoy-Korgon fortress, overnight in Naryn." },
+          { "title": "Naryn → Bishkek → Departure", "desc": "Morning drive to the capital, farewell lunch, airport transfer." }
+        ],
+        "includes": ["Guide", "Transport", "Yurt Stays", "Meals", "Permits"],
+        "not_included": ["International flights", "Visa", "Insurance", "Personal expenses", "Tips"]
+      },
+      "enilchek": {
+        "name": "Enilchek Glacier Expedition",
+        "difficulty": "Hard",
+        "season": "July — August",
+        "overview": "A 12-day expedition to one of the largest mountain glaciers on the planet. See Khan Tengri Peak (7010m) and Pobeda Peak (7439m) — the highest summits of the Tien Shan range. Helicopter access into the very heart of the glacier.",
+        "highlights": [
+          "Helicopter transfer to base camp",
+          "Views of Khan Tengri and Pobeda Peak",
+          "Ice trekking on the South Enilchek",
+          "Merzbacher Lake — a natural phenomenon",
+          "Experienced mountaineering guides"
+        ],
+        "itinerary": [
+          { "title": "Bishkek — Karakol", "desc": "Drive along Issyk-Kul north shore, gear check and briefing." },
+          { "title": "Karakol — Maida-Adyr", "desc": "Transfer to mountain camp, acclimatisation at 2800m." },
+          { "title": "Helicopter transfer", "desc": "Flight to Enilchek base camp (4000m), tent setup." },
+          { "title": "Acclimatisation days", "desc": "Radial hikes, ice training, rest." },
+          { "title": "Merzbacher Lake", "desc": "Trek to the legendary pulsating lake." },
+          { "title": "Days 6-10: Glacier program", "desc": "Trekking program across the glacier, views of 7000m peaks." },
+          { "title": "Day 11-12: Return", "desc": "Helicopter evacuation, drive to Bishkek, departure." }
+        ],
+        "includes": ["Helicopter", "Guide", "Camp Equipment", "Meals", "Insurance"],
+        "not_included": ["International flights", "Visa", "Personal gear", "Alcohol", "Tips"]
+      },
+      "issyk_kul": {
+        "name": "Issyk-Kul Discovery Loop",
+        "difficulty": "Easy",
+        "season": "May — October",
+        "overview": "The perfect tour for those who want to explore Kyrgyzstan without serious physical effort. Loop around the country's pearl — Issyk-Kul Lake — see Skazka Canyon, petroglyphs, hot springs and enjoy beach relaxation.",
+        "highlights": [
+          "Warm alpine Issyk-Kul Lake",
+          "Fairy-tale red-rock Skazka Canyon",
+          "Ancient Cholpon-Ata petroglyphs",
+          "Altyn-Arashan hot springs",
+          "Comfortable lakeside hotels"
+        ],
+        "itinerary": [
+          { "title": "Arrival — Cholpon-Ata", "desc": "Transfer from Bishkek, hotel check-in, beach time." },
+          { "title": "Cholpon-Ata", "desc": "Petroglyph museum, yacht trip, spa treatments." },
+          { "title": "Karakol", "desc": "Dungan Mosque, Russian Church, international cuisine." },
+          { "title": "Skazka Canyon", "desc": "Drive to south shore, trek through red rocks." },
+          { "title": "Return to Bishkek", "desc": "National cuisine tasting, airport transfer." }
+        ],
+        "includes": ["Guide", "Transport", "Hotel", "Breakfast"],
+        "not_included": ["Lunch and dinner", "International flights", "Visa", "Insurance", "Personal expenses"]
+      },
+      "nomadic": {
+        "name": "Nomadic Life & Eagle Hunting",
+        "difficulty": "Moderate",
+        "season": "June — October",
+        "overview": "A 9-day immersion in the living nomadic culture of Kyrgyzstan. Stay in yurts with shepherds at Son-Kul jailoo, learn horseback riding and witness the legendary eagle hunt — an ancient art over 3000 years old.",
+        "highlights": [
+          "Live with a berkutchi (eagle hunter) family",
+          "Eagle hunting demonstration",
+          "Yurt camp at Son-Kul Lake",
+          "Horse rides across jailoo pastures",
+          "Kok-Boru and national games"
+        ],
+        "itinerary": [
+          { "title": "Bishkek — Kochkor", "desc": "Felt-making craft introduction, shyrdak masterclass." },
+          { "title": "Kochkor — Son-Kul", "desc": "Drive over a 3016m pass, yurt check-in." },
+          { "title": "Son-Kul", "desc": "Horseback trek around the lake, dinner with a shepherd family." },
+          { "title": "Son-Kul — Bokonbaevo", "desc": "Drive to Issyk-Kul, meet a berkutchi family." },
+          { "title": "Eagle hunt", "desc": "Demonstration of the ancient hunt, falconry basics." },
+          { "title": "Kok-Boru", "desc": "Watch or participate in the national horse game." },
+          { "title": "Skazka Canyon", "desc": "Trekking the fairy-tale rocks, photoshoot." },
+          { "title": "Return", "desc": "Drive to Bishkek, farewell dinner." },
+          { "title": "Departure", "desc": "Airport transfer, end of tour." }
+        ],
+        "includes": ["Guide", "Yurt Stays", "Eagle Show", "Meals", "Horse Riding"],
+        "not_included": ["International flights", "Visa", "Insurance", "Alcohol", "Tips"]
+      }
     }
   },
   "hotels": {
@@ -225,5 +339,19 @@
     "status_contacted": "Processing",
     "status_confirmed": "Confirmed",
     "status_cancelled": "Cancelled"
+  },
+  "reviews": {
+    "title": "Guest Reviews",
+    "subtitle": "Discover what our travelers say about their nomadic adventures",
+    "write_review": "Leave a Review",
+    "rating": "Rating",
+    "comment": "Your Review",
+    "comment_placeholder": "Share your experience with us...",
+    "submit": "Submit Review",
+    "submitting": "Submitting",
+    "login_required": "Please log in to submit a review.",
+    "login_btn": "Log In to Write a Review",
+    "success": "Thank you! Your review has been published.",
+    "error_failed": "Failed to submit review. Please try again."
   }
 }
