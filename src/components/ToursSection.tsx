@@ -61,6 +61,7 @@ export default function ToursSection() {
   const [signInOpen, setSignInOpen] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [hasGoogle, setHasGoogle] = useState(true);
+  const [step, setStep] = useState(1);
 
   // Search & Filter states
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,6 +70,81 @@ export default function ToursSection() {
   
   // Favorites/Wishlist state
   const [favorites, setFavorites] = useState<{ id: number; type: 'tour' | 'hotel' }[]>([]);
+
+  // Price Estimator Logic
+  const getEstimatedPrice = () => {
+    if (!formData.tour) return 0;
+    const guestsNum = parseInt(formData.guests) || 1;
+    
+    // Search tour
+    const tourItem = TOURS.find(item => t(`list.${item.key}.name`) === formData.tour);
+    if (tourItem) {
+      return tourItem.price * guestsNum;
+    }
+    
+    // Search hotel
+    const hotelItem = HOTELS.find(item => th(`list.${item.key}.name`) === formData.tour);
+    if (hotelItem) {
+      const hotelBasePrice = hotelItem.id === 1 ? 85 :
+                             hotelItem.id === 2 ? 145 :
+                             hotelItem.id === 3 ? 220 :
+                             hotelItem.id === 4 ? 55 :
+                             hotelItem.id === 5 ? 95 : 180;
+      return hotelBasePrice * guestsNum;
+    }
+    
+    // Search transport
+    const transItem = TRANSPORT.find(item => ttr(`${item.key}_title`) === formData.tour);
+    if (transItem) {
+      const transPrice = transItem.key === "jeep" ? 120 : 150;
+      return transPrice * (transItem.key === "jeep" ? 1 : guestsNum);
+    }
+    
+    return 0;
+  };
+
+  const nextStep = () => {
+    setValidationError(null);
+    if (step === 1) {
+      if (!formData.tour) {
+        setValidationError(t("form_select_item"));
+        return;
+      }
+      if (!formData.date) {
+        setValidationError(locale === "ru" ? "Пожалуйста, выберите дату" : "Please select preferred date");
+        return;
+      }
+      const selectedDate = new Date(formData.date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (selectedDate < today) {
+        setValidationError(t("form_date_past"));
+        return;
+      }
+      setStep(2);
+    } else if (step === 2) {
+      if (!formData.name.trim()) {
+        setValidationError(locale === "ru" ? "Введите ваше имя" : "Please enter your name");
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        setValidationError(t("form_email_invalid"));
+        return;
+      }
+      const phoneRegex = /^[0-9+\s()\-]{6,}$/;
+      if (!phoneRegex.test(formData.phone)) {
+        setValidationError(t("form_phone_invalid"));
+        return;
+      }
+      setStep(3);
+    }
+  };
+
+  const prevStep = () => {
+    setValidationError(null);
+    setStep(prev => Math.max(1, prev - 1));
+  };
 
   useEffect(() => {
     // Check if Google provider is available
@@ -168,6 +244,7 @@ export default function ToursSection() {
     const handleSelect = (e: Event) => {
       const itemName = (e as CustomEvent).detail;
       setFormData(prev => ({ ...prev, tour: itemName }));
+      setStep(1);
       
       const formElement = document.getElementById("booking-form");
       if (formElement) {
@@ -296,6 +373,7 @@ export default function ToursSection() {
           message: "",
           guests: "2"
         }));
+        setStep(1);
         setTimeout(() => setSubmitted(false), 5000);
       } else {
         const errData = await res.json();
@@ -432,7 +510,7 @@ export default function ToursSection() {
                         <button onClick={() => setSelectedTourDetails(tour)} className="btn-secondary !px-4 !py-3 !text-[10px]">
                           {t("details")}
                         </button>
-                        <a href="#booking-form" onClick={() => setFormData(p => ({...p, tour: t(`list.${tour.key}.name`)}))} className="btn-primary !px-4 !py-3 !text-[10px]">
+                        <a href="#booking-form" onClick={() => { setFormData(p => ({...p, tour: t(`list.${tour.key}.name`)})); setStep(1); }} className="btn-primary !px-4 !py-3 !text-[10px]">
                           {t("book_now")}
                         </a>
                       </div>
@@ -462,6 +540,44 @@ export default function ToursSection() {
                 </div>
               )}
 
+              {/* Step Progress Bar */}
+              <div className="flex items-center justify-between max-w-md mx-auto mb-12 relative">
+                {/* Background connecting line */}
+                <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-gray-100 -z-10" />
+                {/* Colored active line */}
+                <div 
+                  className="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-[#c9a84c] transition-all duration-500 -z-10" 
+                  style={{ width: step === 1 ? "0%" : step === 2 ? "50%" : "100%" }}
+                />
+                
+                {[
+                  { s: 1, label: t("step_select") },
+                  { s: 2, label: t("step_details") },
+                  { s: 3, label: t("step_confirm") }
+                ].map(({ s, label }) => {
+                  const isActive = step >= s;
+                  const isCurrent = step === s;
+                  return (
+                    <div key={s} className="flex flex-col items-center gap-2 bg-white px-2">
+                      <div 
+                        className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 border-2 ${
+                          isCurrent 
+                            ? "bg-[#1a3d2b] text-white border-[#1a3d2b] scale-110 shadow-md shadow-[#1a3d2b]/20" 
+                            : isActive 
+                              ? "bg-[#c9a84c] text-white border-[#c9a84c]" 
+                              : "bg-white text-gray-400 border-gray-200"
+                        }`}
+                      >
+                        {step > s ? <Check size={16} className="stroke-[3]" /> : s}
+                      </div>
+                      <span className={`text-[10px] font-bold uppercase tracking-wider ${isActive ? "text-[#1a3d2b]" : "text-gray-400"}`}>
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
               {submitted ? (
                 <div className="text-center py-20">
                   <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -470,55 +586,178 @@ export default function ToursSection() {
                   <p className="text-xl font-bold text-[#1a3d2b]">{t("form_success")}</p>
                 </div>
               ) : (
-                <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
                   {validationError && (
-                    <div className="md:col-span-2 bg-red-50 border border-red-100 rounded-3xl p-5 flex items-center gap-3 text-red-800">
+                    <div className="bg-red-50 border border-red-100 rounded-3xl p-5 flex items-center gap-3 text-red-800">
                       <AlertCircle size={20} className="shrink-0" />
                       <p className="text-xs font-bold leading-relaxed">{validationError}</p>
                     </div>
                   )}
 
-                  {[
-                    { key: "name", label: t("form_name"), type: "text" },
-                    { key: "email", label: t("form_email"), type: "email" },
-                    { key: "phone", label: t("form_phone"), type: "tel" },
-                    { key: "date", label: t("form_date"), type: "date" },
-                  ].map(({ key, label, type }) => (
-                    <div key={key}>
-                      <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{label}</label>
-                      <input type={type} className="input-field" required value={formData[key as keyof typeof formData]} onChange={e => setFormData(p => ({ ...p, [key]: e.target.value }))} />
-                    </div>
-                  ))}
-                  <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_tour")}</label>
-                      <select name="item-select" className="input-field cursor-pointer" value={formData.tour} onChange={e => setFormData(p => ({ ...p, tour: e.target.value }))} required>
-                        <option value="">—</option>
-                        <optgroup label={t("title")}>
-                          {TOURS.map(t2 => <option key={t2.id} value={t(`list.${t2.key}.name`)}>{t(`list.${t2.key}.name`)}</option>)}
-                        </optgroup>
-                        <optgroup label={th("title")}>
-                          {HOTELS.map(h => <option key={h.id} value={th(`list.${h.key}.name`)}>{th(`list.${h.key}.name`)}</option>)}
-                        </optgroup>
-                        <optgroup label={ttr("title")}>
-                          {TRANSPORT.map(tr => <option key={tr.id} value={ttr(`${tr.key}_title`)}>{ttr(`${tr.key}_title`)}</option>)}
-                        </optgroup>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_guests")}</label>
-                      <input type="number" min={1} max={20} className="input-field" value={formData.guests} onChange={e => setFormData(p => ({ ...p, guests: e.target.value }))} />
-                    </div>
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_message")}</label>
-                    <textarea className="input-field min-h-[120px]" value={formData.message} onChange={e => setFormData(p => ({ ...p, message: e.target.value }))} />
-                  </div>
-                  <div className="md:col-span-2 text-center mt-6">
-                    <button type="submit" disabled={loading} className="btn-accent w-full md:w-auto min-w-[280px] cursor-pointer">
-                      {loading ? <div className="w-5 h-5 border-2 border-[#1a3d2b]/30 border-t-[#1a3d2b] rounded-full animate-spin" /> : (session ? t("form_submit") : ta("login_google"))}
-                    </button>
-                  </div>
+                  <AnimatePresence mode="wait">
+                    {step === 1 && (
+                      <motion.div
+                        key="step1"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-6"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_tour")}</label>
+                            <select name="item-select" className="input-field cursor-pointer" value={formData.tour} onChange={e => setFormData(p => ({ ...p, tour: e.target.value }))} required>
+                              <option value="">—</option>
+                              <optgroup label={t("title")}>
+                                {TOURS.map(t2 => <option key={t2.id} value={t(`list.${t2.key}.name`)}>{t(`list.${t2.key}.name`)}</option>)}
+                              </optgroup>
+                              <optgroup label={th("title")}>
+                                {HOTELS.map(h => <option key={h.id} value={th(`list.${h.key}.name`)}>{th(`list.${h.key}.name`)}</option>)}
+                              </optgroup>
+                              <optgroup label={ttr("title")}>
+                                {TRANSPORT.map(tr => <option key={tr.id} value={ttr(`${tr.key}_title`)}>{ttr(`${tr.key}_title`)}</option>)}
+                              </optgroup>
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_guests")}</label>
+                            <input type="number" min={1} max={20} className="input-field" value={formData.guests} onChange={e => setFormData(p => ({ ...p, guests: e.target.value }))} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_date")}</label>
+                            <input type="date" className="input-field" required value={formData.date} onChange={e => setFormData(p => ({ ...p, date: e.target.value }))} />
+                          </div>
+                        </div>
+
+                        {/* Price Calculator Estimate Card */}
+                        {formData.tour && (
+                          <div className="bg-[#1a3d2b]/5 border border-[#1a3d2b]/10 rounded-3xl p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mt-6">
+                            <div>
+                              <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">{t("form_price_estimate")}</p>
+                              <p className="text-sm font-medium text-gray-600">{formData.tour}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-playfair text-2xl font-black text-[#1a3d2b]">${getEstimatedPrice()}</p>
+                              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                                {parseInt(formData.guests) > 1 ? `${formData.guests} ${t("guests")}` : `1 ${locale === "ru" ? "гость" : (locale === "ky" ? "конок" : "guest")}`}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex justify-end pt-4">
+                          <button type="button" onClick={nextStep} className="btn-accent min-w-[180px] cursor-pointer">
+                            {locale === "ru" ? "Далее" : (locale === "ky" ? "Далее" : "Next")}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {step === 2 && (
+                      <motion.div
+                        key="step2"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-6"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_name")}</label>
+                            <input type="text" className="input-field" required value={formData.name} onChange={e => setFormData(p => ({ ...p, name: e.target.value }))} />
+                          </div>
+                          <div>
+                            <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_email")}</label>
+                            <input type="email" className="input-field" required value={formData.email} onChange={e => setFormData(p => ({ ...p, email: e.target.value }))} />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_phone")}</label>
+                            <input type="tel" className="input-field" required value={formData.phone} onChange={e => setFormData(p => ({ ...p, phone: e.target.value }))} />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-4">
+                          <button type="button" onClick={prevStep} className="btn-secondary min-w-[140px]">
+                            {locale === "ru" ? "Назад" : (locale === "ky" ? "Артка" : "Back")}
+                          </button>
+                          <button type="button" onClick={nextStep} className="btn-accent min-w-[140px] cursor-pointer">
+                            {locale === "ru" ? "Далее" : (locale === "ky" ? "Далее" : "Next")}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+
+                    {step === 3 && (
+                      <motion.div
+                        key="step3"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        transition={{ duration: 0.3 }}
+                        className="space-y-6"
+                      >
+                        {/* Booking Summary Review Card */}
+                        <div className="bg-gray-50 border border-gray-100 rounded-3xl p-6 sm:p-8 space-y-4">
+                          <h4 className="font-playfair text-xl font-bold text-[#1a3d2b] border-b border-gray-200 pb-3">
+                            {locale === "ru" ? "Проверьте данные бронирования" : (locale === "ky" ? "Брондоо маалыматтарын текшериңиз" : "Confirm Booking Details")}
+                          </h4>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm font-medium">
+                            <div>
+                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{locale === "ru" ? "Услуга" : (locale === "ky" ? "Кызмат" : "Service")}</p>
+                              <p className="text-slate-800 mt-1">{formData.tour}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{locale === "ru" ? "Количество гостей" : (locale === "ky" ? "Коноктордун саны" : "Guests")}</p>
+                              <p className="text-slate-800 mt-1">{formData.guests}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{locale === "ru" ? "Желаемая дата" : (locale === "ky" ? "Каалаган дата" : "Date")}</p>
+                              <p className="text-slate-800 mt-1">{formData.date}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{locale === "ru" ? "Клиент" : (locale === "ky" ? "Кардар" : "Customer")}</p>
+                              <p className="text-slate-800 mt-1">{formData.name}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">Email</p>
+                              <p className="text-slate-800 mt-1">{formData.email}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400 text-xs font-bold uppercase tracking-wider">{locale === "ru" ? "Телефон" : (locale === "ky" ? "Телефон" : "Phone")}</p>
+                              <p className="text-slate-800 mt-1">{formData.phone}</p>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-gray-200 pt-4 flex justify-between items-center">
+                            <span className="font-bold text-[#1a3d2b] text-base">{t("total_price")}</span>
+                            <span className="font-playfair text-3xl font-black text-[#1a3d2b]">${getEstimatedPrice()}</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-black uppercase tracking-widest text-gray-400 mb-3 ml-1">{t("form_message")}</label>
+                          <textarea className="input-field min-h-[100px]" value={formData.message} onChange={e => setFormData(p => ({ ...p, message: e.target.value }))} />
+                        </div>
+
+                        <div className="flex justify-between items-center pt-4">
+                          <button type="button" onClick={prevStep} className="btn-secondary min-w-[140px]">
+                            {locale === "ru" ? "Назад" : (locale === "ky" ? "Артка" : "Back")}
+                          </button>
+                          
+                          <button type="submit" disabled={loading} className="btn-accent min-w-[180px] cursor-pointer">
+                            {loading ? (
+                              <div className="w-5 h-5 border-2 border-[#1a3d2b]/30 border-t-[#1a3d2b] rounded-full animate-spin" />
+                            ) : (
+                              session ? t("form_submit") : ta("login_google")
+                            )}
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </form>
               )}
             </div>
@@ -537,6 +776,7 @@ export default function ToursSection() {
         onBook={() => {
           if (selectedTourDetails) {
             setFormData(p => ({ ...p, tour: t(`list.${selectedTourDetails.key}.name`) }));
+            setStep(1);
             setTimeout(() => {
               const formElement = document.getElementById("booking-form");
               if (formElement) {
@@ -625,7 +865,7 @@ function TourDetailsModal({
               </div>
             </div>
 
-            <div className="p-8 md:p-10 !pb-2 space-y-8 overflow-y-auto flex-1 hide-scrollbar">
+            <div className="p-8 md:p-10 !pb-2 space-y-8 overflow-y-auto flex-1 custom-scrollbar">
               
               {/* Quick info badges row */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-5 rounded-3xl border border-gray-100">

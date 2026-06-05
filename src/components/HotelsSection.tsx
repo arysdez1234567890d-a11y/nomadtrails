@@ -345,7 +345,7 @@ function HotelDetailsModal({
               </div>
             </div>
 
-            <div className="p-6 sm:p-8 !pb-2 space-y-6 overflow-y-auto flex-1 hide-scrollbar">
+            <div className="p-6 sm:p-8 !pb-2 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
               
               {/* Description */}
               <div>
